@@ -6,22 +6,22 @@
 
 _注：此 SDK 无法用于石墨文档官网产品 (即 shimo.im) 。_
 
-## [文档详情](https://shimo-open.github.io/shimo-js-sdk/#/)
+## [文档详情](https://shimo-open.github.io/weboffice-js-sdk/#/)
 
 ### 安装
 
 ```shell
 # 通过 npm
-npm install --save shimo-js-sdk
+npm install --save weboffice-js-sdk
 
 # 通过 yarn
-yarn add shimo-js-sdk
+yarn add weboffice-js-sdk
 ```
 
 ### 初始化 iframe
 
 ```js
-const { connect } = require('shimo-js-sdk')
+const { connect } = require('weboffice-js-sdk')
 
 connect({
   fileId: '您系统中的 file id',
@@ -57,18 +57,18 @@ Promise<ShimoSDK>
 
 1. 使用 [npm view](https://docs.npmjs.com/cli/v7/commands/npm-view) 和 [npm pack](https://docs.npmjs.com/cli/v7/commands/npm-pack) 下载代码包 (`.tgz` 格式)
 2. 将 `.tgz` 解压缩后的 `dist` 目录下的文件放置到您托管静态资源的空间，然后使用 `<script>` 引入 `index.js` 资源
-3. 通过 `window.ShimoJSSDK` 对象获取对应的方法
+3. 通过 `window.WebOfficeJSSDK` 对象获取对应的方法
 
 ```js
-const { connect, FileType } = window.ShimoJSSDK
+const { connect, FileType } = window.WebOfficeJSSDK
 // 等价于
-const { connect, FileType } = require('shimo-js-sdk')
+const { connect, FileType } = require('weboffice-js-sdk')
 ```
 
 #### 使用示例
 
 ```js
-const { connect } = require('shimo-js-sdk')
+const { connect } = require('weboffice-js-sdk')
 
 const fileId = '1234'
 const uuid = 'youruuid'
@@ -104,7 +104,7 @@ connect({
 获取编辑器实例和与其交互：
 
 ```js
-const { FileType } = require('shimo-js-sdk')
+const { FileType } = require('weboffice-js-sdk')
 
 // 获取编辑器实例
 const editor = sdk.getEditor()
@@ -123,7 +123,7 @@ if (sdk.fileType === FileType.Document) {
 若为 `TypeScript`，可使用 `Generic`：
 
 ```typescript
-const { Document } = require('shimo-js-sdk')
+const { Document } = require('weboffice-js-sdk')
 
 const editor = sdk.getEditor<Document.Editor>()
 editor.on('saveStatusChanged', (payload) => {
@@ -193,7 +193,7 @@ const sdk = await connect({
 
 ### 协作者模块使用说明
 
-当 iframe 套件开启协作者能力后（依赖 `ENABLE_SDK_COLLABORATORS_MODULE` 开关），shimo-js-sdk 使用方可按以下方式接入：
+当 iframe 套件开启协作者能力后（依赖 `ENABLE_SDK_COLLABORATORS_MODULE` 开关），weboffice-js-sdk 使用方可按以下方式接入：
 
 1. **监听 `collaboratorsChanged`**
 
@@ -294,7 +294,7 @@ const shimoSDK = await connect({
 为了解决这个问题，石墨 SDK 引入 `generateUrl()` 和 `openLink()` 方法：
 
 ```js
-import { UrlSharingType } from 'shimo-js-sdk'
+import { UrlSharingType } from 'weboffice-js-sdk'
 
 const shimoSDK = await connect({
   ...,
@@ -497,7 +497,7 @@ connect({
 - `ui.toast.tips.edit.noPermission`
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 
 const shimoSDK = await connect({
   ui: {
@@ -521,7 +521,7 @@ const shimoSDK = await connect({
 此方法可显示接入方自定义 toast，具体用法如下
 
 ```typescript
-import { connect, ShowToastOptions } from 'shimo-js-sdk'
+import { connect, ShowToastOptions } from 'weboffice-js-sdk'
 
 const shimoSDK = await connect({
   // 初始化sdk时传了该方法将会拦截编辑器内的toast

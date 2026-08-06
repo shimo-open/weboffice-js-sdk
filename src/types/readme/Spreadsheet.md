@@ -5,7 +5,7 @@
 1.单元格@，打开表格时可跳转至对应单元格
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由MentionAt事件推送
@@ -17,7 +17,7 @@ connect({
 2.单元格评论，打开表格时可跳转至对应单元格并展开评论
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由Comment事件推送
@@ -29,7 +29,7 @@ connect({
 3.日期提醒，打开表格时可跳转至对应单元格
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由DateMention事件推送
@@ -41,7 +41,7 @@ connect({
 4.单元格备注内容里插入@，打开表格时可跳转至对应单元格并展开备注
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由MentionAt事件推送
@@ -53,7 +53,7 @@ connect({
 ## 2.定位到指定工作表的区域/单元格
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 格式--> 单个单元格C7:C7，范围C7:C8，该参数可选，若不传该参数则会定位到指定工作表的上一次选中的单元格（如果没打开过则默认为A1单元格）
@@ -66,7 +66,7 @@ connect({
 ## 3.禁用 toast
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 会禁用所有表格toast
@@ -78,7 +78,7 @@ connect({
 ## 4.进入预览模式
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     preview: true
@@ -89,7 +89,7 @@ connect({
 ## 5.禁用未安装且不支持下载的字体（不显示在列表里）
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // pd-3.12后可用
@@ -101,7 +101,7 @@ connect({
 ## 6.控制是否加载部分表格功能
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   /*
   表格插件，除【图片权限设置】默认关闭外，其他插件默认全部开启，可以通过如下方式配置插件隐藏
@@ -162,7 +162,7 @@ connect({
 
 ```typescript
 
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 import Base62Str from 'base62str'
 const base62Instance = Base62Str.createInstance()
 const searchParams = new URLSearchParams(location.search)
@@ -184,7 +184,7 @@ editor.on('paramsChanged', ({ sheetId, hash }: { sheetId: string, hash?: string 
 ## 8.粘贴识别链接标题时只对指定链接做识别
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // string
@@ -196,7 +196,7 @@ connect({
 ## 8.仅渲染表格视图区域（隐藏工具栏，FX 栏和底部 sheet 栏）
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 // pc
 connect({
   plugins: {
@@ -237,7 +237,7 @@ editor.cancelSearchHighlights()
 ## 10.初始化时不自动聚焦表格
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 不自动聚焦表格(默认会自动聚焦)

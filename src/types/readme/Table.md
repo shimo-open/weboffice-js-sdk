@@ -5,7 +5,7 @@
 1.单元格评论，打开应用表格时打开相应记录编辑弹窗并定位到相应评论
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由Comment事件推送
@@ -20,7 +20,7 @@ connect({
 ## 2.控制是否加载部分应用表格功能
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 connect({
   /*
   应用表格插件，目前开放以下插件的配置
@@ -85,7 +85,7 @@ editor 实例可以监听到应用表格抛出的如下事件
 ## 4.切换工作表时更改浏览器地址栏信息（以便从地址栏复制链接给其他用户打开时定位到相同工作表）
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 import Base62Str from 'base62str'
 const base62Instance = Base62Str.createInstance()
 const searchParams = new URLSearchParams(location.search)

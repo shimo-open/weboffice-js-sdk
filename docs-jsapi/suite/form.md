@@ -141,7 +141,7 @@ editor.on('titleChange', (newTitle) => {
 ### 获取编辑器实例
 
 ```javascript
-import { connect, FileType } from 'shimo-js-sdk'
+import { connect, FileType } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   fileId: 'your-file-id',
@@ -198,7 +198,7 @@ editor.on('userListChanged', (users) => {
 ### TypeScript 支持
 
 ```typescript
-import { Form } from 'shimo-js-sdk'
+import { Form } from 'weboffice-js-sdk'
 
 // 使用类型约束
 const editor = sdk.getEditor<Form.Editor>()

@@ -1,7 +1,7 @@
 ### 安装
 
 ```bash
-npm install --save shimo-js-sdk
+npm install --save weboffice-js-sdk
 ```
 
 ### 基本用法
@@ -9,7 +9,7 @@ npm install --save shimo-js-sdk
 #### npm 包
 
 ```javascript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   fileId: '您系统中的 file id',
@@ -36,18 +36,18 @@ editor.on('saveStatusChanged', (payload) => {
 
 1. 使用 [npm view](https://docs.npmjs.com/cli/v7/commands/npm-view) 和 [npm pack](https://docs.npmjs.com/cli/v7/commands/npm-pack) 下载代码包 (`.tgz` 格式)
 2. 将 `.tgz` 解压缩后的 `dist` 目录下的文件放置到您托管静态资源的空间，然后使用 `<script>` 引入 `index.js` 资源
-3. 通过 `window.ShimoJSSDK` 对象获取对应的方法
+3. 通过 `window.WebOfficeJSSDK` 对象获取对应的方法
 
 ```js
-const { connect, FileType } = window.ShimoJSSDK
+const { connect, FileType } = window.WebOfficeJSSDK
 // 等价于
-const { connect, FileType } = require('shimo-js-sdk')
+const { connect, FileType } = require('weboffice-js-sdk')
 ```
 
 #### 使用示例
 
 ```js
-const { connect } = require('shimo-js-sdk')
+const { connect } = require('weboffice-js-sdk')
 
 const fileId = '1234'
 const uuid = 'youruuid'
@@ -78,7 +78,7 @@ connect({
 为了解决这个问题，石墨 SDK 引入 `generateUrl()` 和 `openLink()` 方法：
 
 ```js
-import { UrlSharingType } from 'shimo-js-sdk'
+import { UrlSharingType } from 'weboffice-js-sdk'
 
 const shimoSDK = await connect({
   ...,
@@ -282,7 +282,7 @@ connect({
 
 如果您在使用过程中遇到问题，请参考：
 
-- [详细 API 文档](https://github.com/shimo-open/shimo-js-sdk/blob/master/docs/modules) - 详细的接口文档
+- [详细 API 文档](https://github.com/shimo-open/weboffice-js-sdk/blob/master/docs/modules) - 详细的接口文档
 - [石墨 SDK 2.0 官网](https://open.shimo.im/) - 产品详细介绍
 
 ## 注意事项

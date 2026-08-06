@@ -20,7 +20,7 @@
 ## 使用示例
 
 ```typescript
-import { connect, Event, FileType } from 'shimo-js-sdk'
+import { connect, Event, FileType } from 'weboffice-js-sdk'
 
 const sdk = await connect(options)
 
@@ -65,7 +65,7 @@ if (sdk.fileType === FileType.Spreadsheet) {
 创建并初始化一个 `OfficeSDK` 实例。
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   fileId: 'your-file-id',
@@ -117,7 +117,7 @@ await sdk.ready()
 监听 SDK 或编辑器转发出来的通用事件。
 
 ```typescript
-import { Event } from 'shimo-js-sdk'
+import { Event } from 'weboffice-js-sdk'
 
 sdk.on(Event.Error, (error) => {
   console.error(error)
@@ -147,7 +147,7 @@ sdk.on(Event.ReadyState, (payload) => {
 监听一次性事件，回调触发后会自动取消监听。
 
 ```typescript
-import { Event } from 'shimo-js-sdk'
+import { Event } from 'weboffice-js-sdk'
 
 sdk.once(Event.EditorRendered, () => {
   console.log('editor first render finished')
@@ -167,7 +167,7 @@ sdk.once(Event.EditorRendered, () => {
 取消事件监听。
 
 ```typescript
-import { Event } from 'shimo-js-sdk'
+import { Event } from 'weboffice-js-sdk'
 
 const handleError = (error: Error) => {
   console.error(error)
@@ -195,7 +195,7 @@ sdk.off(Event.Error, handleError)
 读取当前文件类型。
 
 ```typescript
-import { FileType } from 'shimo-js-sdk'
+import { FileType } from 'weboffice-js-sdk'
 
 if (sdk.fileType === FileType.Document) {
   console.log('当前是轻文档')

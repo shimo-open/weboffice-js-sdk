@@ -10,7 +10,7 @@
 调用 `connect(options)` 成功后会返回一个 `OfficeSDK` 实例：
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 
 const sdk = await connect(options)
 ```
@@ -27,13 +27,13 @@ const sdk = await connect(options)
 ### 安装
 
 ```bash
-npm install --save shimo-js-sdk
+npm install --save weboffice-js-sdk
 ```
 
 ### npm 包方式
 
 ```typescript
-import { connect } from 'shimo-js-sdk'
+import { connect } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   fileId: '您系统中的 file id',
@@ -56,18 +56,18 @@ editor.on('saveStatusChanged', (payload) => {
 
 1. 使用 [npm view](https://docs.npmjs.com/cli/v7/commands/npm-view) 和 [npm pack](https://docs.npmjs.com/cli/v7/commands/npm-pack) 下载代码包。
 2. 将 `.tgz` 解压后 `dist` 目录中的文件部署到您的静态资源空间。
-3. 通过 `<script>` 引入 `index.js`，再从 `window.ShimoJSSDK` 获取对应方法。
+3. 通过 `<script>` 引入 `index.js`，再从 `window.WebOfficeJSSDK` 获取对应方法。
 
 ```javascript
-const { connect, FileType } = window.ShimoJSSDK
+const { connect, FileType } = window.WebOfficeJSSDK
 // 等价于
-const { connect, FileType } = require('shimo-js-sdk')
+const { connect, FileType } = require('weboffice-js-sdk')
 ```
 
 ### 使用示例
 
 ```javascript
-const { connect } = require('shimo-js-sdk')
+const { connect } = require('weboffice-js-sdk')
 
 const fileId = '1234'
 const uuid = 'youruuid'
@@ -167,7 +167,7 @@ await sdk.presentation?.start()
 常见调用顺序如下：
 
 ```typescript
-import { connect, FileType } from 'shimo-js-sdk'
+import { connect, FileType } from 'weboffice-js-sdk'
 
 const sdk = await connect(options)
 
@@ -220,7 +220,7 @@ await editor.showHistory?.()
 为了解决这个问题，SDK 提供了 `generateUrl()`、`openLink()` 和 `getFileInfoFromUrl()` 等能力。
 
 ```typescript
-import { UrlSharingType } from 'shimo-js-sdk'
+import { UrlSharingType } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   ...options,

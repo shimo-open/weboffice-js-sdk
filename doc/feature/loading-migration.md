@@ -1,11 +1,11 @@
 # showLoading 接入 suite-components-loading 迁移说明
 
-> 关联方案：`doc/feature/empty-page-plan.md` 第五章 "shimo-js-sdk 侧改造"。
+> 关联方案：`doc/feature/empty-page-plan.md` 第五章 "weboffice-js-sdk 侧改造"。
 > 关联 PR：TBD（suite 新包 0.0.x 发布后合入）。
 
 ## 概述
 
-`shimo-js-sdk` 原本在 `src/assets/loading.ts` 里内联 SVG，在 `OfficeSDK` 里直接操作 DOM、写死遮罩样式。此次改造把视觉与 DOM 行为下沉到 `@shimo/suite-components-loading/renderer`（纯 DOM 子入口，不带 React），并顺势补齐了时机、超时、清理三件事。
+`weboffice-js-sdk` 原本在 `src/assets/loading.ts` 里内联 SVG，在 `OfficeSDK` 里直接操作 DOM、写死遮罩样式。此次改造把视觉与 DOM 行为下沉到 `@shimo/suite-components-loading/renderer`（纯 DOM 子入口，不带 React），并顺势补齐了时机、超时、清理三件事。
 
 ## 变更点
 

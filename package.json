@@ -4,7 +4,7 @@
   "description": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shimo-open/shimo-js-sdk.git"
+    "url": "git+https://github.com/shimo-open/weboffice-js-sdk.git"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

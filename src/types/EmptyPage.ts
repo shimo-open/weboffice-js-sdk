@@ -2,8 +2,8 @@
  * 缺省页能力的对外契约类型。
  *
  * 关于 scene 枚举归属（已确定）：
- *   P1~P4 实施期，两侧（shimo-js-sdk 与 lizard-service-iframe-sdk）在本地 types
- *   文件里手工保持字面量一致；联调稳定后沉淀到 `shimo-js-sdk-shared` 的常量中。
+ *   P1~P4 实施期，两侧（weboffice-js-sdk 与 lizard-service-iframe-sdk）在本地 types
+ *   文件里手工保持字面量一致；联调稳定后沉淀到 `weboffice-js-sdk-shared` 的常量中。
  */
 
 /**

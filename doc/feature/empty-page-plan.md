@@ -1,4 +1,4 @@
-# 缺省页功能细化方案 (shimo-js-sdk 侧)
+# 缺省页功能细化方案 (weboffice-js-sdk 侧)
 
 > 所在分支：`feature-empty-page`
 >
@@ -32,10 +32,10 @@ export type EmptyPageScene =
   | 'token-expired'
 ```
 
-**归属约定（已定）**：分阶段沉淀到 `shimo-js-sdk-shared`。
+**归属约定（已定）**：分阶段沉淀到 `weboffice-js-sdk-shared`。
 
-- P1~P4 实施阶段：两侧（iframe、shimo-js-sdk）在本地 `src/types/EmptyPage.ts` 中手工保持字面量一致，通过本文档和 code review 约束
-- 联调稳定后：在 `shimo-js-sdk-shared` 中 `export const EMPTY_PAGE_SCENES` 常量与 `EMPTY_PAGE_EVENTS` 事件名常量，两侧随下一版本同步升级依赖，替换本地字面量
+- P1~P4 实施阶段：两侧（iframe、weboffice-js-sdk）在本地 `src/types/EmptyPage.ts` 中手工保持字面量一致，通过本文档和 code review 约束
+- 联调稳定后：在 `weboffice-js-sdk-shared` 中 `export const EMPTY_PAGE_SCENES` 常量与 `EMPTY_PAGE_EVENTS` 事件名常量，两侧随下一版本同步升级依赖，替换本地字面量
 
 此策略避免 shared 包发版成为主路径阻塞，同时最终归位到正确的契约层。
 
@@ -179,7 +179,7 @@ export type {
 这样 TypeScript 宿主可以直接：
 
 ```ts
-import { connect, EmptyPageScene } from 'shimo-js-sdk'
+import { connect, EmptyPageScene } from 'weboffice-js-sdk'
 ```
 
 ---
@@ -200,7 +200,7 @@ import { connect, EmptyPageScene } from 'shimo-js-sdk'
 README 示例草稿：
 
 ```ts
-import { connect, EmptyPageScene } from 'shimo-js-sdk'
+import { connect, EmptyPageScene } from 'weboffice-js-sdk'
 
 const sdk = await connect({
   // ...其他配置
@@ -268,7 +268,7 @@ sdk.on('emptyPageAction', async ({ scene, action }) => {
 
 | 事项                     | 决策                                                              | 说明                                                             |
 | ------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------- |
-| scene 常量归属           | 分阶段沉淀到 `shimo-js-sdk-shared`                                | 实施期两侧本地字面量，联调稳定后再抽包，不阻塞主路径             |
+| scene 常量归属           | 分阶段沉淀到 `weboffice-js-sdk-shared`                                | 实施期两侧本地字面量，联调稳定后再抽包，不阻塞主路径             |
 | token-expired 默认策略   | `refresh-first`，最多重试 1 次，5s 超时                           | 未传 `getCredentials` 时降级为 `show-immediately`，避免死循环    |
 | `delegateActions` 默认值 | 按 scene 区分：`token-expired` 默认 `true`，其他默认 `false`      | 类型升级为 `boolean \| Partial<Record<EmptyPageScene, boolean>>` |
 | 404 是否独立 scene       | **不独立**，用 `reason` 字段表达子类型                            | 保持 scene 粒度稳定，HTTP 细节由 reason 承载                     |
@@ -279,6 +279,6 @@ sdk.on('emptyPageAction', async ({ scene, action }) => {
 
 ## 12. 关联分支
 
-- `shimo-js-sdk` — `feature-empty-page`（当前）
+- `weboffice-js-sdk` — `feature-empty-page`（当前）
 - `lizard-service-iframe-sdk` — `feature-empty-page`（见其 `doc/feature/empty-page-plan.md`）
 - `suite-components` — 进行中的 `suite-components-empty-page` 包扩展（需新增 preset：`file-open-failed` / `network-error` / `token-expired`，保留现有 `no-permission`）

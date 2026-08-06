@@ -2,7 +2,7 @@
 
 > 所在分支：`feat-headerbars`
 >
-> 本文档基于当前分支源码整理，用于对齐 `shimo-js-sdk` 侧已经暴露的 `headerBars` 能力，以及 iframe 侧需要承接的 method contract。
+> 本文档基于当前分支源码整理，用于对齐 `weboffice-js-sdk` 侧已经暴露的 `headerBars` 能力，以及 iframe 侧需要承接的 method contract。
 
 ---
 

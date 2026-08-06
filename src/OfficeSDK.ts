@@ -1933,7 +1933,7 @@ export interface SDKToastOptions {
 
 /**
  * 透传给 iframe 编辑器的主题配置。
- * 当前 shimo-js-sdk 仅负责跨 iframe 传输，不在宿主侧约束字段细节。
+ * 当前 weboffice-js-sdk 仅负责跨 iframe 传输，不在宿主侧约束字段细节。
  */
 export interface CommonThemeConfig {
   [key: string]: unknown
