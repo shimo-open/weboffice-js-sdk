@@ -41,7 +41,8 @@ const sdk = await connect({
   signature: '用您的 app id 和 secret 签发的签名',
   token: '用于您系统识别用户请求的 token',
   container: document.querySelector('#shimo-file'),
-  lang: 'en', // 未指定时使用浏览器默认语言
+  lang: 'en-US', // 编辑器 locale；未指定时使用 iframe 服务端设置的默认语言
+  headerBarsVisible: true, // 顶部栏初始是否展示，false 表示隐藏
   userUuid: '您的 uuid' // 仅在 v2 版本回调时需要传入
 })
 
@@ -87,6 +88,8 @@ connect({
 ```
 
 调用 `connect()` 时，会基于传入参数初始化一个 `<iframe>` 并插入到 `container` 对应的元素中。
+
+`connect(options)` 还支持自动刷新鉴权、顶部栏初始显示状态和编辑器 locale 等配置，详见 [公共处理方法 - connect(options)](./common-api.md#connectoptions)。
 
 ---
 
@@ -274,6 +277,35 @@ https://your-domain/files/:id?smParams=PARAMS
 默认情况下，调用 `connect()` 时会从当前 `location.search` 中提取 `smParams`。如果需要自定义上下文参数，可以通过 `connect({ smParams })` 手动传入。
 
 `smParams` 是经过 [base62](https://github.com/felipecarrillo100/base62str) 序列化后的 `Record<string, unknown>` 对象。
+
+前端可以使用 `base62str` 生成 `smParams`：
+
+```javascript
+const Base62Str = require('base62str').default
+const base62 = Base62Str.createInstance()
+
+const obj = {
+  type: 'form',
+  path: '%2Ffill'
+}
+
+// 固定字段顺序，保证相同数据生成稳定的编码结果
+const json = JSON.stringify(obj, ['type', 'fileGuid', 'path'])
+console.log('JSON:', json)
+
+const smParams = base62.encodeStr(json)
+console.log('encodeStr:', smParams)
+
+// 部分版本也提供 encode() 别名
+if (typeof base62.encode === 'function') {
+  console.log('encode:', base62.encode(json))
+}
+
+connect({
+  ...connectOptions,
+  smParams
+})
+```
 
 手动传入 `smParams` 后，SDK 不会再自动从 `location.search` 读取原始值。如果希望保留已有上下文，可以这样合并：
 

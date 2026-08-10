@@ -72,9 +72,84 @@ const sdk = await connect({
   endpoint: 'https://your-shimo-endpoint',
   signature: 'your-signature',
   token: 'your-token',
-  container: document.querySelector('#shimo-file')
+  container: document.querySelector('#shimo-file'),
+  headerBarsVisible: true,
+  lang: 'zh-CN'
 })
 ```
+
+### 常用配置
+
+| 配置项                       | 说明                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `fileId`                     | 要打开的文档 ID                                                              |
+| `endpoint`                   | 石墨 SDK 服务地址                                                            |
+| `signature`                  | 用于石墨 SDK 鉴权的签名                                                      |
+| `token`                      | 用于接入方系统鉴权的 token                                                   |
+| `container`                  | iframe 挂载的目标容器元素                                                    |
+| `refreshCredentialsInterval` | 自动刷新鉴权信息的时间间隔，单位为毫秒                                       |
+| `getCredentials`             | 获取最新 `signature` 和 `token` 的异步方法                                   |
+| `headerBarsVisible`          | 顶部栏初始是否展示，`false` 表示隐藏                                         |
+| `lang`                       | 编辑器 locale，例如 `zh-CN`、`en-US`；未传时使用 iframe 服务端设置的默认语言 |
+| `smParams`                   | URL 上下文参数，可传 base62 字符串、对象，或由字符串和对象组成的数组         |
+
+### 自动刷新鉴权
+
+`signature` 和 `token` 存在有效期。建议通过 `refreshCredentialsInterval` 和 `getCredentials` 配置自动刷新，避免用户长时间停留页面后因鉴权过期而中断编辑。
+
+```typescript
+const officeSDK = await connect({
+  signature: '[your signature]',
+  token: '[your token]',
+  // 更新鉴权的时间间隔，单位为毫秒
+  // 若过期时间为 7 天，则建议设置为 3.5 天
+  refreshCredentialsInterval: 1000 * 3600 * 24 * 3.5,
+  getCredentials: async () => {
+    const res = await getCredentialsFromServer()
+    return {
+      signature: res.signature,
+      token: res.token
+    }
+  }
+})
+```
+
+`getCredentials` 应从接入方后端获取最新鉴权信息，并返回同时包含 `signature` 和 `token` 的对象。
+
+### 顶部栏初始显示状态
+
+通过 `headerBarsVisible` 控制顶部栏初始是否展示：
+
+```typescript
+const sdk = await connect({
+  ...options,
+  headerBarsVisible: false
+})
+```
+
+- `true` 或不传：初始展示顶部栏
+- `false`：初始隐藏顶部栏
+- 连接后如需动态切换，使用 `await sdk.headerBars.setVisible(visible)`，详见 [HeaderBars](./headerbars.md)
+
+### locale（编辑器语言）
+
+通过 `lang` 指定编辑器 locale：
+
+```typescript
+const sdk = await connect({
+  ...options,
+  lang: 'en-US'
+})
+```
+
+支持的标准值：
+
+- `zh-CN`、`zh-TW`
+- `en-US`、`ja-JP`、`ko-KR`
+- `es-ES`、`pt-PT`、`de-DE`、`fr-FR`、`it-IT`、`ru-RU`
+- `id-ID`、`vi-VN`、`th-TH`、`ms-MY`、`ar-SA`
+
+为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。未传 `lang` 时，iframe 使用服务端设置的默认语言。
 
 ### 返回值
 

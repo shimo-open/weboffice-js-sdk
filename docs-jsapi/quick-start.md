@@ -17,8 +17,9 @@ const sdk = await connect({
   signature: '用您的 app id 和 secret 签发的签名',
   token: '用于您系统识别用户请求的 token',
   container: document.querySelector('#shimo-file'), // iframe 挂载的目标容器元素
-  lang: 'en' // 未指定此参数时，使用浏览器默认语言
-  userUuid：'您的uuid', // 仅在v2版本回调时需要传入(co-1.3+支持)
+  lang: 'en-US', // 编辑器 locale；未指定时使用 iframe 服务端设置的默认语言
+  headerBarsVisible: true, // 顶部栏初始是否展示, 默认值 true; 传入 false 表示隐藏
+  userUuid: '您的 uuid' // 仅在 v2 版本回调时需要传入（co-1.3+ 支持）
 })
 
 // 获取编辑器实例
@@ -63,13 +64,68 @@ connect({
   container: document.querySelector('#shimo-file'), // iframe 挂载的目标容器元素
   userUuid: uuid
 }).then((sdk) => {
-  // sdk 即为 ShimoSDK 实例
+  // sdk 即为 OfficeSDK 实例
 })
 ```
 
 调用 `connect()` 时，会以传入参数为基础，初始化一个 `<iframe>` 并插入 `container` 对应的元素中。
 
-返回的 `sdk` 为 `ShimoSDK` 实例，用于和 SDK、编辑器交互。
+返回的 `sdk` 为 `OfficeSDK` 实例，用于和 SDK、编辑器交互。
+
+### 常用 connectOptions 配置
+
+#### 自动刷新鉴权
+
+`signature` 和 `token` 存在有效期。建议配置自动刷新，避免用户长时间停留页面后因鉴权过期而中断编辑：
+
+```js
+const officeSDK = await connect({
+  signature: '[your signature]',
+  token: '[your token]',
+  // 更新鉴权的时间间隔，单位为毫秒
+  // 若过期时间为 7 天，则建议设置为 3.5 天
+  refreshCredentialsInterval: 1000 * 3600 * 24 * 3.5,
+  getCredentials: async () => {
+    const res = await getCredentialsFromServer()
+    return {
+      signature: res.signature,
+      token: res.token
+    }
+  }
+})
+```
+
+`getCredentials` 应从接入方后端获取最新鉴权信息，并返回同时包含 `signature` 和 `token` 的对象。
+
+#### headerBarsVisible
+
+通过 `headerBarsVisible` 控制顶部栏初始是否展示：
+
+```js
+const officeSDK = await connect({
+  ...options,
+  headerBarsVisible: false
+})
+```
+
+- `true` 或不传：初始展示顶部栏
+- `false`：初始隐藏顶部栏
+- 连接后如需动态切换，使用 `await officeSDK.headerBars.setVisible(visible)`
+
+#### locale（编辑器语言）
+
+通过 `lang` 指定编辑器 locale，例如：
+
+```js
+const officeSDK = await connect({
+  ...options,
+  lang: 'zh-CN'
+})
+```
+
+支持的标准值包括：`zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`es-ES`、`pt-PT`、`de-DE`、`fr-FR`、`it-IT`、`ru-RU`、`id-ID`、`vi-VN`、`th-TH`、`ms-MY`、`ar-SA`。
+
+为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。未传 `lang` 时，iframe 使用服务端设置的默认语言。
 
 ### 如何处理 URL
 
@@ -80,7 +136,7 @@ connect({
 ```js
 import { UrlSharingType } from 'weboffice-js-sdk'
 
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ...,
 
   generateUrl(fileId: string, info: GenerateUrlInfo): string {
@@ -134,6 +190,34 @@ https://your-domain/files/:id?smParams=PARAMS
 默认情况下，调用 `connect()` 会从当前 `location.search` 中提取 `smParams`，如果遇到需要自定义参数的场合，可以通过 `connect({ smParams: PARAMS })` 参数修改。
 
 `smParams` 为经过 [base62](https://github.com/felipecarrillo100/base62str) 序列化后的 `Record<string, unknown>` 对象。
+
+前端可以使用 `base62str` 生成 `smParams`：
+
+```js
+const Base62Str = require('base62str').default
+const base62 = Base62Str.createInstance()
+
+const obj = {
+  type: 'form',
+  path: '%2Ffill'
+}
+
+// 固定字段顺序，保证相同数据生成稳定的编码结果
+const json = JSON.stringify(obj, ['type', 'fileGuid', 'path'])
+console.log('JSON:', json)
+
+const smParams = base62.encodeStr(json)
+console.log('encodeStr:', smParams)
+
+// 部分版本也提供 encode() 别名
+if (typeof base62.encode === 'function') {
+  console.log('encode:', base62.encode(json))
+}
+
+connect({
+  smParams
+})
+```
 
 **在传入 `smParams` 参数时，将不会从 `location.search` 中获取数据**，如果想保留原有信息，可以这样传递：
 

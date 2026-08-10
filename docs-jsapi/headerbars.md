@@ -1,4 +1,4 @@
-# API
+# 顶部栏定制 HeaderBars
 
 ## HeaderBars
 
@@ -99,6 +99,27 @@ commandRef.onCommandClick = async () => {
 4. 使用 `sdk.headerBars.getCommand(id)` 获取命令引用
 5. 通过 `commandRef.visible / disabled / active / label / src / editable / onCommandClick` 调整命令行为
 6. 如需确认当前视图实际生效的命令列表，调用 `sdk.headerBars.listViewCommands()`
+
+### 初始化显示状态
+
+调用 `connect(options)` 时，可以通过 `headerBarsVisible` 配置顶部栏的初始显示状态：
+
+```typescript
+const sdk = await connect({
+  ...options,
+  headerBarsVisible: false
+})
+```
+
+- `true` 或不传：初始展示顶部栏
+- `false`：初始隐藏顶部栏
+
+`headerBarsVisible` 只负责初始化状态。连接完成后需要动态切换时，请使用：
+
+```typescript
+await sdk.headerBars.setVisible(true)
+await sdk.headerBars.setVisible(false)
+```
 
 ## 元素类型
 

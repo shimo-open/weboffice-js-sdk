@@ -9,8 +9,7 @@ import { connect } from 'weboffice-js-sdk'
 connect({
   smParams: {
     // 由Comment事件推送
-    hash:
-      'comment-DzFvFR2bp31-sdY0UYHBd0S-clfZcl2VF254T044-t9mPduLtyp4-g4XV3B1Z8PX:%E6%A0%87%E9%A2%98'
+    hash: 'comment-DzFvFR2bp31-sdY0UYHBd0S-clfZcl2VF254T044-t9mPduLtyp4-g4XV3B1Z8PX:%E6%A0%87%E9%A2%98'
   }
 })
 ```
@@ -106,7 +105,7 @@ editor.on('paramsChanged', ({ table, view }: { table: string, view: string }) =>
 应用表格内涉及到生成应用表格相关的链接时会调用 generateUrl，利用回调函数的第二个参数中包含一个字段`urlType`可以区分调用的场景。目前该字段仅应用表格有。
 
 ```typescript
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ...,
   generateUrl(fileId: string, info: GenerateUrlInfo, params: StartParams /* smParams解出来的参数 */): string {
     const urlType = params.urlType
@@ -136,7 +135,7 @@ urlType 参数及其意义
 #### 生成分享 url
 
 ```typescript
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ...,
   generateUrl(fileId: string, info: GenerateUrlInfo, params: StartParams): string {
     if (params?.urlType === 'shareView') {
@@ -152,7 +151,7 @@ const shimoSDK = await connect({
 #### 渲染视图分享模式
 
 ```typescript
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ...,
   smParams: {
     ...,

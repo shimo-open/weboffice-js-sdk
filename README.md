@@ -35,7 +35,7 @@ connect({
     name: 'light'
   }, // 可选，透传给 iframe 内编辑器主题配置
   userUuid：'您的uuid' // 仅在v2版本回调时需要传入(co-1.3+支持)
-}).then((shimoSDK) => {
+}).then((officeSDK) => {
   // ...
 })
 ```
@@ -44,13 +44,13 @@ connect({
 
 其中：
 
-- `disableAiEntry` 为可选布尔值，透传到 iframe 内 `ShimoSDK` 的 AI 入口开关能力。
+- `disableAiEntry` 为可选布尔值，透传到 iframe 内 `OfficeSDK` 的 AI 入口开关能力。
 - `theme` 为可选主题对象，宿主侧仅负责透传；未传时 iframe 内仍使用默认主题配置。
 
 返回值：
 
 ```
-Promise<ShimoSDK>
+Promise<OfficeSDK>
 ```
 
 **使用传统的 `<script>` 的方式加载：**
@@ -84,19 +84,19 @@ connect({
   container: document.querySelector('#shimo-file'), // iframe 挂载的目标容器元素
   userUuid: uuid
 }).then((sdk) => {
-  // sdk 即为 ShimoSDK 实例
+  // sdk 即为 OfficeSDK 实例
 })
 ```
 
 调用 `connect()` 时，会以传入参数为基础，初始化一个 `<iframe>` 并插入 `container` 对应的元素中。
 
-返回的 `sdk` 为 `ShimoSDK` 实例，用于和 SDK、编辑器交互。
+返回的 `sdk` 为 `OfficeSDK` 实例，用于和 SDK、编辑器交互。
 
 ### SDK 和编辑器实例
 
 石墨 JS SDK 共有两种实例用于和 JS SDK 交互：
 
-- `ShimoSDK` 由 `connect()` 返回，处理初始化编辑器和编辑器交互的工作
+- `OfficeSDK` 由 `connect()` 返回，处理初始化编辑器和编辑器交互的工作
 - `Editor` 文档编辑器，直接和文档内容交互。**`Editor` 所有接口均返回 Promise**
 
 两者之间各有独立的方法和事件，具体请查看 `docs` 目录的文档。
@@ -244,7 +244,7 @@ editor.on('editForbiddenConfirmed', ({ reason }) => {
 
 具体说明请查阅在线文档：[https://platform.shimo.im/v2/docs/concepts/](https://platform.shimo.im/v2/docs/concepts/)。
 
-由于 `signature` 和 `token` 有过期时间，一般也不建议设置过长的时间，但为了减少因过期导致的用户体验问题，`ShimoSDK` 提供 `setCredentials({ signature, token })` 方法用于动态更新。
+由于 `signature` 和 `token` 有过期时间，一般也不建议设置过长的时间，但为了减少因过期导致的用户体验问题，`OfficeSDK` 提供 `setCredentials({ signature, token })` 方法用于动态更新。
 
 ```js
 /**
@@ -253,7 +253,7 @@ editor.on('editForbiddenConfirmed', ({ reason }) => {
 */
 let { signature, token, expires } = await getCredentialsFromServer()
 
-const shimoSDK = await connect({ ... })
+const officeSDK = await connect({ ... })
 
 setInterval(
   () => {
@@ -261,7 +261,7 @@ setInterval(
     // 当剩余时间不到3.5天就过期时进行更新
     if (expires - Date.now() < 1000 * 3600 * 24 * 3.5) {
       const resp = await getCredentialsFromServer()
-      await shimoSDK.setCredentials({
+      await officeSDK.setCredentials({
         signature: resp.signature,
         token: resp.token
       })
@@ -271,7 +271,7 @@ setInterval(
   60 * 1000
 )
 // 以上为旧版本更新鉴权方式，新版本（v1.2.23+）请参照如下方式进行更新
-const shimoSDK = await connect({
+const officeSDK = await connect({
   signature: '[your signature]',
   token: '[your token]',
   // 更新鉴权的时间间隔，单位为毫秒
@@ -296,7 +296,7 @@ const shimoSDK = await connect({
 ```js
 import { UrlSharingType } from 'weboffice-js-sdk'
 
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ...,
 
   generateUrl(fileId: string, info: GenerateUrlInfo): string {
@@ -499,7 +499,7 @@ connect({
 ```typescript
 import { connect } from 'weboffice-js-sdk'
 
-const shimoSDK = await connect({
+const officeSDK = await connect({
   ui: {
     toast: {
       tips: {
@@ -523,7 +523,7 @@ const shimoSDK = await connect({
 ```typescript
 import { connect, ShowToastOptions } from 'weboffice-js-sdk'
 
-const shimoSDK = await connect({
+const officeSDK = await connect({
   // 初始化sdk时传了该方法将会拦截编辑器内的toast
   showToast: (options: ShowToastOptions) => {
     // show your toast

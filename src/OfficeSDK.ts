@@ -2107,7 +2107,7 @@ export interface OfficeSDKOptions
 
   /**
    * 是否隐藏 iframe 内 AI 入口。
-   * 对应 iframe 内 ShimoSDK 的现有 AI 入口开关能力。
+   * 对应 iframe 内 OfficeSDK 的现有 AI 入口开关能力。
    */
   disableAiEntry?: boolean
 
