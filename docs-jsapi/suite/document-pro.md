@@ -1,4 +1,4 @@
-# API
+# 文稿 API
 
 ## 方法
 
@@ -827,7 +827,7 @@ await editor.updateSignature({
 
 #### 说明
 
-导出传统文档为指定格式。
+导出文稿为指定格式。
 
 _自 co-1.5 版本开始支持_
 
@@ -861,18 +861,18 @@ await editor.export('imagePdf')
 
 ## 事件列表
 
-| 事件名                                            | 说明                 | 载荷类型                              |
-| ------------------------------------------------- | -------------------- | ------------------------------------- |
-| [selectionEnded](#selectionended)                 | 选择结束事件         | `{}`                                  |
-| [documentChanged](#documentchanged)               | 文档内容变更事件     | `{}`                                  |
-| [commentClicked](#commentclicked)                 | 评论点击事件         | `{ commentIds?: string[] }`           |
-| [documentRecalculated](#documentrecalculated)     | 文档重新计算事件     | `{}`                                  |
-| [error](#error)                                   | 错误事件             | `{ data?: any, code: number }`        |
-| [MouseMove](#mousemove)                           | 鼠标移动事件         | `MouseMovePayload`                    |
-| [VerticalScroll](#verticalscroll)                 | 垂直滚动事件         | `MouseMovePayload`                    |
-| [HorizontalScroll](#horizontalscroll)             | 水平滚动事件         | `MouseMovePayload`                    |
-| [showSignatureComponent](#showsignaturecomponent) | 请求打开签名组件事件 | `{ aspectRatio: number, id: string }` |
-| [saveStatusChanged](#savestatuschanged)           | 保存状态变更事件     |  `{ status: 'saving' \| 'saved' \| 'error' }`             |
+| 事件名                                            | 说明                 | 载荷类型                                     |
+| ------------------------------------------------- | -------------------- | -------------------------------------------- |
+| [selectionEnded](#selectionended)                 | 选择结束事件         | `{}`                                         |
+| [documentChanged](#documentchanged)               | 文档内容变更事件     | `{}`                                         |
+| [commentClicked](#commentclicked)                 | 评论点击事件         | `{ commentIds?: string[] }`                  |
+| [documentRecalculated](#documentrecalculated)     | 文档重新计算事件     | `{}`                                         |
+| [error](#error)                                   | 错误事件             | `{ data?: any, code: number }`               |
+| [MouseMove](#mousemove)                           | 鼠标移动事件         | `MouseMovePayload`                           |
+| [VerticalScroll](#verticalscroll)                 | 垂直滚动事件         | `MouseMovePayload`                           |
+| [HorizontalScroll](#horizontalscroll)             | 水平滚动事件         | `MouseMovePayload`                           |
+| [showSignatureComponent](#showsignaturecomponent) | 请求打开签名组件事件 | `{ aspectRatio: number, id: string }`        |
+| [saveStatusChanged](#savestatuschanged)           | 保存状态变更事件     | `{ status: 'saving' \| 'saved' \| 'error' }` |
 
 ---
 
@@ -1010,7 +1010,7 @@ error: {
 const editor = sdk.getEditor()
 
 editor.on('error', (payload) => {
-  console.error('传统文档编辑器发生错误:')
+  console.error('文稿编辑器发生错误:')
   console.error('错误代码:', payload.code)
   console.error('错误详情:', payload.data)
 })

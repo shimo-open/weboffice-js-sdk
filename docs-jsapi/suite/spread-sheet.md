@@ -17,8 +17,8 @@
 | [sdk.presentation](#sdkpresentation)                                             | 演示模式能力（PC only，`co-1.8+`）         |
 | [sdk.workbook](#sdkworkbook)                                                     | 工作簿能力（PC only，`co-1.8+`）           |
 | [sdk.activeSheet](#sdkactivesheet)                                               | 当前工作表能力（PC only，`co-1.8+`）       |
-| [range: SheetRangeFacade](#sdksheetrange)                                        | 工作表范围对象能力（PC only，`co-1.8+`）   |
-| [cell: SheetCellFacade](#sdksheetcell)                                           | 工作表单元格对象能力（PC only，`co-1.8+`） |
+| [range: SheetRangeFacade](#range-sheetrangefacade)                               | 工作表范围对象能力（PC only，`co-1.8+`）   |
+| [cell: SheetCellFacade](#cell-sheetcellfacade)                                   | 工作表单元格对象能力（PC only，`co-1.8+`） |
 | [sdk.charts](#sdkcharts)                                                         | 图表能力（PC only，`co-1.8+`）             |
 | [sdk.selections](#sdkselections)                                                 | 多选区能力（PC only，`co-1.8+`）           |
 | [sdk.batchChanges](#sdkbatchchangescallback)                                     | 批量变更（PC only，`co-1.8+`）             |
@@ -325,7 +325,7 @@ sdk.activeSheet?.setVisible(visible: boolean): Promise<void>
 
 ---
 
-<h3 id="sdksheetrange">range: SheetRangeFacade</h3>
+<h3 id="range-sheetrangefacade">range: SheetRangeFacade</h3>
 
 #### 说明
 
@@ -494,7 +494,7 @@ range.clearAll(): Promise<void>
 
 ---
 
-<h3 id="sdksheetcell">cell: SheetCellFacade</h3>
+<h3 id="cell-sheetcellfacade">cell: SheetCellFacade</h3>
 
 #### 说明
 

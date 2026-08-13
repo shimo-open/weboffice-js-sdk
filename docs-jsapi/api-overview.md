@@ -20,6 +20,8 @@ const sdk = await connect(options)
 - `公共 API`：挂在 `OfficeSDK` 实例本身上，不依赖具体编辑器套件
 - `编辑器 API`：依赖当前文件类型，只在对应套件下可用
 
+本章安装命令和代码示例统一使用 npm 包 `weboffice-js-sdk`。
+
 ---
 
 ## 安装与基本用法
@@ -41,7 +43,7 @@ const sdk = await connect({
   signature: '用您的 app id 和 secret 签发的签名',
   token: '用于您系统识别用户请求的 token',
   container: document.querySelector('#shimo-file'),
-  lang: 'en-US', // 编辑器 locale；未指定时使用 iframe 服务端设置的默认语言
+  lang: 'en-US', // 可选；未指定时使用编辑器默认语言
   headerBarsVisible: true, // 顶部栏初始是否展示，false 表示隐藏
   userUuid: '您的 uuid' // 仅在 v2 版本回调时需要传入
 })
@@ -89,7 +91,7 @@ connect({
 
 调用 `connect()` 时，会基于传入参数初始化一个 `<iframe>` 并插入到 `container` 对应的元素中。
 
-`connect(options)` 还支持自动刷新鉴权、顶部栏初始显示状态和编辑器 locale 等配置，详见 [公共处理方法 - connect(options)](./common-api.md#connectoptions)。
+`connect(options)` 还支持凭证自动刷新、顶部栏初始显示状态和编辑器多语言等配置，详见 [公共处理方法 - connect(options)](https://support.shimo.net/apidoc/docs-site/6000010/doc-338258#connectoptions)。
 
 ---
 
@@ -99,7 +101,7 @@ connect({
 
 这类能力主要用于初始化、等待就绪、读取文件类型、监听通用事件、获取编辑器实例，以及在宿主侧管理连接生命周期。
 
-公共方法的详细说明请查看 [公共处理方法](./common-api.md)。
+公共方法的详细说明请查看 [公共处理方法](https://support.shimo.net/apidoc/docs-site/6000010/doc-338258)。
 
 ---
 
@@ -111,7 +113,7 @@ connect({
 
 例如：
 
-- 轻文档有标题、评论、目录、正文选区等能力
+- 文档有标题、评论、目录、正文选区等能力
 - 表格有工作表、单元格、锁定、图表等能力
 - 演示文稿有幻灯片、演示模式、缩放、文本范围等能力
 
@@ -276,7 +278,7 @@ https://your-domain/files/:id?smParams=PARAMS
 
 默认情况下，调用 `connect()` 时会从当前 `location.search` 中提取 `smParams`。如果需要自定义上下文参数，可以通过 `connect({ smParams })` 手动传入。
 
-`smParams` 是经过 [base62](https://github.com/felipecarrillo100/base62str) 序列化后的 `Record<string, unknown>` 对象。
+`smParams` 是经过 [base62str](https://www.npmjs.com/package/base62str) 序列化后的 `Record<string, unknown>` 对象。
 
 前端可以使用 `base62str` 生成 `smParams`：
 
@@ -363,7 +365,7 @@ parseUrl(url: string) {
 
 这个场景适用于一个表格存在多个工作表时，希望打开编辑器后直接展示指定工作表，而不是默认第一个工作表。
 
-可以先通过表格编辑器接口 [getActiveSheetId](./suite/spread-sheet.md#getactivesheetid) 获取当前激活工作表 ID，再把它作为业务 URL 参数透传回来，例如：
+可以先通过表格编辑器接口 [sdk.workbook](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262#sdkworkbook) 的 `getActiveWorksheet()` 获取当前激活工作表，并读取其 `id` 作为业务 URL 参数透传回来，例如：
 
 ```text
 https://your-domain.com/files/abcdefg?sheetId=XXXXX&smParams=XXXXXXXXXXXXXXXXXXXXXX
@@ -397,9 +399,9 @@ connect({
 
 当前支持的文档类型：
 
-- `轻文档` - `document`
+- `文档` - `document`
 - `表格` - `spreadsheet`
-- `传统文档` - `documentPro`
+- `文稿` - `documentPro`
 
 例如：
 
@@ -438,15 +440,15 @@ connect({
 
 ## 支持的文档类型
 
-| 类型           | 说明     | 编辑器 API                          |
-| -------------- | -------- | ----------------------------------- |
-| `Document`     | 轻文档   | [轻文档](./suite/document.md)       |
-| `DocumentPro`  | 传统文档 | [传统文档](./suite/document-pro.md) |
-| `Spreadsheet`  | 表格     | [表格](./suite/spread-sheet.md)     |
-| `Presentation` | 幻灯片   | [演示文稿](./suite/presentation.md) |
-| `Table`        | 应用表格 | [简单表格](./suite/table.md)        |
-| `Form`         | 表单     | [表单](./suite/form.md)             |
-| `Flowchart`    | 流程图   | [流程图](./suite/flow-chart.md)     |
+| 类型           | 说明     | 编辑器 API                                                                |
+| -------------- | -------- | ------------------------------------------------------------------------- |
+| `Document`     | 文档     | [文档](https://support.shimo.net/apidoc/docs-site/6000010/doc-338260)     |
+| `DocumentPro`  | 文稿     | [文稿](https://support.shimo.net/apidoc/docs-site/6000010/doc-338261)     |
+| `Spreadsheet`  | 表格     | [表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262)     |
+| `Presentation` | 幻灯片   | [幻灯片](https://support.shimo.net/apidoc/docs-site/6000010/doc-338263)   |
+| `Table`        | 应用表格 | [应用表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338265) |
+| `Form`         | 表单     | [表单](https://support.shimo.net/apidoc/docs-site/6000010/doc-338264)     |
+| `Flowchart`    | 流程图   | 当前站点暂未提供独立 API 页面                                             |
 
 ---
 
@@ -454,14 +456,12 @@ connect({
 
 如需继续查看不同层级的说明，可结合以下页面：
 
-- [概述](./summary.md)
-- [公共处理方法](./common-api.md)
-- [快速开始](./quick-start.md)
-- [HeaderBars](./headerbars.md)
-- [轻文档](./suite/document.md)
-- [传统文档](./suite/document-pro.md)
-- [表格](./suite/spread-sheet.md)
-- [简单表格](./suite/table.md)
-- [演示文稿](./suite/presentation.md)
-- [流程图](./suite/flow-chart.md)
-- [表单](./suite/form.md)
+- [整体概述](https://support.shimo.net/apidoc/docs-site/6000010/doc-338257)
+- [公共处理方法](https://support.shimo.net/apidoc/docs-site/6000010/doc-338258)
+- [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)
+- [文档](https://support.shimo.net/apidoc/docs-site/6000010/doc-338260)
+- [文稿](https://support.shimo.net/apidoc/docs-site/6000010/doc-338261)
+- [表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262)
+- [幻灯片](https://support.shimo.net/apidoc/docs-site/6000010/doc-338263)
+- [表单](https://support.shimo.net/apidoc/docs-site/6000010/doc-338264)
+- [应用表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338265)

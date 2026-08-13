@@ -1,4 +1,4 @@
-# API
+# 文档 API
 
 ## 方法
 
@@ -17,7 +17,7 @@
 | [sdk.version](#sdkversion)                                          | 版本能力（PC only，`co-1.8+`）           |
 | [sdk.presentation.start](#sdkpresentationstartindex)                | 启动演示（PC only，`co-1.8+`）           |
 | [sdk.selection](#sdkselection)                                      | 选区能力（PC only，`co-1.8+`）           |
-| [range: DocsRangeFacade](#sdkselectionrange)                        | 选区范围对象能力（PC only，`co-1.8+`）   |
+| [range: DocsRangeFacade](#range-docsrangefacade)                    | 选区范围对象能力（PC only，`co-1.8+`）   |
 | [sdk.search](#sdksearch)                                            | 搜索与替换（PC only，`co-1.8+`）         |
 | [sdk.outline](#sdkoutline)                                          | 目录能力（PC only，`co-1.8+`）           |
 | [sdk.sidebar](#sdksidebar)                                          | 侧边栏能力（PC only，`co-1.8+`）         |
@@ -25,9 +25,9 @@
 | [sdk.collaborator.hide](#sdkcollaboratorhide)                       | 隐藏编写者信息（PC only，`co-1.8+`）     |
 | [sdk.externalApp.insert](#sdkexternalappinserturl-params)           | 插入第三方应用（PC only，`co-1.8+`）     |
 | [sdk.tables](#sdktables)                                            | 表格集合能力（PC only，`co-1.8+`）       |
-| [table: DocsTableFacade](#sdktablesitem)                            | 单个表格对象能力（PC only，`co-1.8+`）   |
-| [cell: DocsTableCellFacade](#sdktablescell)                         | 表格单元格对象能力（PC only，`co-1.8+`） |
-| [range: DocsTableRangeFacade](#sdktablesrange)                      | 表格范围对象能力（PC only，`co-1.8+`）   |
+| [table: DocsTableFacade](#table-docstablefacade)                    | 单个表格对象能力（PC only，`co-1.8+`）   |
+| [cell: DocsTableCellFacade](#cell-docstablecellfacade)              | 表格单元格对象能力（PC only，`co-1.8+`） |
+| [range: DocsTableRangeFacade](#range-docstablerangefacade)          | 表格范围对象能力（PC only，`co-1.8+`）   |
 | [sdk.settings](#sdksettings)                                        | 文档设置能力（PC only，`co-1.8+`）       |
 | [sdk.batchChanges](#sdkbatchchangescallback)                        | 批量变更（PC only，`co-1.8+`）           |
 | [sdk.print](#sdkprint)                                              | 打印（PC only，`co-1.8+`）               |
@@ -314,7 +314,7 @@ await sdk.selection?.insertText('Hello')
 
 ---
 
-<h3 id="sdkselectionrange">range: DocsRangeFacade</h3>
+<h3 id="range-docsrangefacade">range: DocsRangeFacade</h3>
 
 #### 说明
 
@@ -696,7 +696,7 @@ const table = await sdk.tables?.getOne('table-id')
 
 ---
 
-<h3 id="sdktablesitem">table: DocsTableFacade</h3>
+<h3 id="table-docstablefacade">table: DocsTableFacade</h3>
 
 #### 说明
 
@@ -818,7 +818,7 @@ table.getRange(
 
 ---
 
-<h3 id="sdktablescell">cell: DocsTableCellFacade</h3>
+<h3 id="cell-docstablecellfacade">cell: DocsTableCellFacade</h3>
 
 #### 说明
 
@@ -905,7 +905,7 @@ cell.clearStyle(): Promise<void>
 
 ---
 
-<h3 id="sdktablesrange">range: DocsTableRangeFacade</h3>
+<h3 id="range-docstablerangefacade">range: DocsTableRangeFacade</h3>
 
 #### 说明
 

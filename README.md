@@ -29,7 +29,7 @@ connect({
   signature: '用您的 app id 和 secret 签发的签名',
   token: '用于您系统识别用户请求的 token',
   container: document.querySelector('#shimo-file'), // iframe 挂载的目标容器元素
-  lang: 'en', // 未指定此参数时，使用浏览器默认语言
+  lang: 'en-US', // 可选；未指定时使用编辑器默认语言
   disableAiEntry: true, // 可选，隐藏 iframe 内 AI 入口
   theme: {
     name: 'light'
@@ -237,55 +237,62 @@ editor.on('editForbiddenConfirmed', ({ reason }) => {
 })
 ```
 
-### `signature` 和 `token`
+### 凭证自动刷新（建议）
 
 - `signature` 为石墨区分请求来源，并实现数据隔离的基础
 - `token` 为您用于识别回调请求来源、是否合法的依据
 
 具体说明请查阅在线文档：[https://platform.shimo.im/v2/docs/concepts/](https://platform.shimo.im/v2/docs/concepts/)。
 
-由于 `signature` 和 `token` 有过期时间，一般也不建议设置过长的时间，但为了减少因过期导致的用户体验问题，`OfficeSDK` 提供 `setCredentials({ signature, token })` 方法用于动态更新。
+由于 `signature` 和 `token` 有过期时间，建议在 `ConnectOptions` 中配置自动刷新，避免用户长时间编辑时因凭证失效而中断。
 
-```js
-/**
- * 从您的后端服务获取用于石墨鉴权的签名和 token
- * @deprecated
-*/
-let { signature, token, expires } = await getCredentialsFromServer()
+```typescript
+const { expireMs } = (await appService.getExpireConfig()).data
 
-const officeSDK = await connect({ ... })
+const options: ConnectOptions = {
+  ...config,
+  // 在过期时长的 80% 处刷新，给网络重试等情况预留时间
+  refreshCredentialsInterval: Math.ceil(expireMs * 0.8),
+  getCredentials: async () => (await appService.getCredentials()).data
+}
 
-setInterval(
-  () => {
-    // 建议过期时间为7天
-    // 当剩余时间不到3.5天就过期时进行更新
-    if (expires - Date.now() < 1000 * 3600 * 24 * 3.5) {
-      const resp = await getCredentialsFromServer()
-      await officeSDK.setCredentials({
-        signature: resp.signature,
-        token: resp.token
-      })
-      expires = resp.expires
-    }
-  },
-  60 * 1000
-)
-// 以上为旧版本更新鉴权方式，新版本（v1.2.23+）请参照如下方式进行更新
-const officeSDK = await connect({
-  signature: '[your signature]',
-  token: '[your token]',
-  // 更新鉴权的时间间隔，单位为毫秒
-  // 若过期时间为7天，则建议设置为1000 * 3600 * 24 * 3.5 （3.5天）
-  refreshCredentialsInterval: 1000 * 3600 * 24 * 3.5,
-  getCredentials: async () => {
-    const res = await getCredentialsFromServer()
-    return {
-      signature: res.signature,
-      token: res.token,
-    }
-  }
-})
+const officeSDK = await connect(options)
 ```
+
+示例配套接口：
+
+- `GET /api/apps/expire-config`：返回凭证过期时长，例如 `{ expireMs: 900000 }`
+- `GET /api/credentials`：返回新凭证，例如 `{ signature, token }`
+
+`getCredentials` 应从接入方后端获取最新凭证，并返回同时包含 `signature` 和 `token` 的对象。接口路径可按接入方系统实际情况调整。
+
+### 国际化：编辑器多语言（可选，co-1.8+）
+
+接入方可在调用 `connect` 时通过 `lang` 指定编辑器界面语言，传入对应语言码即可；用户选择“系统默认”时省略 `lang`（或传 `undefined`；纯 JavaScript 也可传 `null`）。
+
+```typescript
+const options: ConnectOptions = {
+  ...config,
+  ...(editorLang ? { lang: editorLang } : {}) // “系统默认”时不传 lang
+}
+
+const officeSDK = await connect(options)
+```
+
+1.8 版本编辑器支持以下 16 种语言：
+
+| 语言          | `lang` 语言码 | 语言             | `lang` 语言码 |
+| ------------- | ------------- | ---------------- | ------------- |
+| 简体中文      | `zh-CN`       | 繁體中文         | `zh-TW`       |
+| English       | `en-US`       | 日本語           | `ja-JP`       |
+| 한국어        | `ko-KR`       | Español          | `es-ES`       |
+| Português     | `pt-PT`       | Deutsch          | `de-DE`       |
+| Français      | `fr-FR`       | Italiano         | `it-IT`       |
+| Русский       | `ru-RU`       | Bahasa Indonesia | `id-ID`       |
+| Tiếng Việt    | `vi-VN`       | ไทย              | `th-TH`       |
+| Bahasa Melayu | `ms-MY`       | العربية          | `ar-SA`       |
+
+为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。新接入建议使用表中的标准语言码。
 
 ### 如何处理 URL
 

@@ -17,7 +17,7 @@ const sdk = await connect({
   signature: '用您的 app id 和 secret 签发的签名',
   token: '用于您系统识别用户请求的 token',
   container: document.querySelector('#shimo-file'), // iframe 挂载的目标容器元素
-  lang: 'en-US', // 编辑器 locale；未指定时使用 iframe 服务端设置的默认语言
+  lang: 'en-US', // 可选；未指定时使用编辑器默认语言
   headerBarsVisible: true, // 顶部栏初始是否展示, 默认值 true; 传入 false 表示隐藏
   userUuid: '您的 uuid' // 仅在 v2 版本回调时需要传入（co-1.3+ 支持）
 })
@@ -74,28 +74,23 @@ connect({
 
 ### 常用 connectOptions 配置
 
-#### 自动刷新鉴权
+#### 凭证自动刷新（建议）
 
-`signature` 和 `token` 存在有效期。建议配置自动刷新，避免用户长时间停留页面后因鉴权过期而中断编辑：
+`signature` 和 `token` 存在有效期。建议在签名过期前自动刷新，避免用户长时间编辑时凭证失效：
 
-```js
-const officeSDK = await connect({
-  signature: '[your signature]',
-  token: '[your token]',
-  // 更新鉴权的时间间隔，单位为毫秒
-  // 若过期时间为 7 天，则建议设置为 3.5 天
-  refreshCredentialsInterval: 1000 * 3600 * 24 * 3.5,
-  getCredentials: async () => {
-    const res = await getCredentialsFromServer()
-    return {
-      signature: res.signature,
-      token: res.token
-    }
-  }
-})
+```typescript
+const { expireMs } = (await appService.getExpireConfig()).data
+
+const options: ConnectOptions = {
+  ...config,
+  refreshCredentialsInterval: Math.ceil(expireMs * 0.8),
+  getCredentials: async () => (await appService.getCredentials()).data
+}
+
+const sdk = await connect(options)
 ```
 
-`getCredentials` 应从接入方后端获取最新鉴权信息，并返回同时包含 `signature` 和 `token` 的对象。
+示例中，`GET /api/apps/expire-config` 返回过期时长 `expireMs`，`GET /api/credentials` 返回新的 `signature` 和 `token`。接口路径可按接入方系统实际情况调整。
 
 #### headerBarsVisible
 
@@ -112,20 +107,33 @@ const officeSDK = await connect({
 - `false`：初始隐藏顶部栏
 - 连接后如需动态切换，使用 `await officeSDK.headerBars.setVisible(visible)`
 
-#### locale（编辑器语言）
+#### 国际化：编辑器多语言（可选，co-1.8+）
 
-通过 `lang` 指定编辑器 locale，例如：
+调用 `connect` 时可通过 `lang` 指定编辑器界面语言；用户选择“系统默认”时省略 `lang`（或传 `undefined`；纯 JavaScript 也可传 `null`）：
 
-```js
-const officeSDK = await connect({
-  ...options,
-  lang: 'zh-CN'
-})
+```typescript
+const options: ConnectOptions = {
+  ...config,
+  ...(editorLang ? { lang: editorLang } : {}) // “系统默认”时不传 lang
+}
+
+const sdk = await connect(options)
 ```
 
-支持的标准值包括：`zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`es-ES`、`pt-PT`、`de-DE`、`fr-FR`、`it-IT`、`ru-RU`、`id-ID`、`vi-VN`、`th-TH`、`ms-MY`、`ar-SA`。
+1.8 版本编辑器支持以下 16 种语言：
 
-为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。未传 `lang` 时，iframe 使用服务端设置的默认语言。
+| 语言          | `lang` 语言码 | 语言             | `lang` 语言码 |
+| ------------- | ------------- | ---------------- | ------------- |
+| 简体中文      | `zh-CN`       | 繁體中文         | `zh-TW`       |
+| English       | `en-US`       | 日本語           | `ja-JP`       |
+| 한국어        | `ko-KR`       | Español          | `es-ES`       |
+| Português     | `pt-PT`       | Deutsch          | `de-DE`       |
+| Français      | `fr-FR`       | Italiano         | `it-IT`       |
+| Русский       | `ru-RU`       | Bahasa Indonesia | `id-ID`       |
+| Tiếng Việt    | `vi-VN`       | ไทย              | `th-TH`       |
+| Bahasa Melayu | `ms-MY`       | العربية          | `ar-SA`       |
+
+为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。新接入建议使用表中的标准语言码。
 
 ### 如何处理 URL
 
@@ -189,7 +197,7 @@ https://your-domain/files/:id?smParams=PARAMS
 
 默认情况下，调用 `connect()` 会从当前 `location.search` 中提取 `smParams`，如果遇到需要自定义参数的场合，可以通过 `connect({ smParams: PARAMS })` 参数修改。
 
-`smParams` 为经过 [base62](https://github.com/felipecarrillo100/base62str) 序列化后的 `Record<string, unknown>` 对象。
+`smParams` 为经过 [base62str](https://www.npmjs.com/package/base62str) 序列化后的 `Record<string, unknown>` 对象。
 
 前端可以使用 `base62str` 生成 `smParams`：
 
@@ -275,7 +283,7 @@ parseUrl(url: string) {
 
 此用法适用于表格中存在多个工作表 (Sheet) ，希望在打开编辑器时，直接展示某个工作表格而非默认的第一个工作表。如用于希望直接分享表格的某个工作表链接给其他协作者，他人在打开后可直接查看指定的工作表。
 
-首先通过表格的编辑器接口 [getActiveSheetId](./suite/spread-sheet?id=getactivesheetid) 方法获取当前处于激活状态的工作表 ID ，此 ID 可用于追加在接入方自身的 URL 上作为参数。
+首先通过表格编辑器接口 [sdk.workbook](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262#sdkworkbook) 的 `getActiveWorksheet()` 获取当前激活工作表，并读取其 `id`。此 ID 可追加在接入方自身的 URL 上作为参数。
 
 如通过 `URL QueryString` 方式传递：`https://your-domain.com/files/abcdefg?sheetId=XXXXX&smParams=XXXXXXXXXXXXXXXXXXXXXX`
 
@@ -311,9 +319,9 @@ connect({
 
 支持类型：
 
-- `轻文档` - `document`
+- `文档` - `document`
 - `表格` - `spreadsheet`
-- `传统文档` - `documentPro`
+- `文稿` - `documentPro`
 
 **使用本章节用法时，请先了解 [URL 的上下文信息](#url-的上下文信息) 章节**。
 
@@ -354,8 +362,8 @@ connect({
 
 | 类型         | 说明     | 模块                                            |
 | ------------ | -------- | ----------------------------------------------- |
-| Document     | 轻文档   | [Document](./suite/document.md)                 |
-| DocumentPro  | 传统文档 | [DocumentPro](./suite/document-pro.md)          |
+| Document     | 文档     | [Document](./suite/document.md)                 |
+| DocumentPro  | 文稿     | [DocumentPro](./suite/document-pro.md)          |
 | Spreadsheet  | 表格     | [Spreadsheet](../docs/modules/Spreadsheet.md)   |
 | Table        | 简单表格 | [Table](../docs/modules/Table.md)               |
 | Presentation | 演示文稿 | [Presentation](../docs/modules/Presentation.md) |

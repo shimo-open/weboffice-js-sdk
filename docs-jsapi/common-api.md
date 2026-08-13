@@ -13,7 +13,7 @@
 - 断开连接
 - 更新鉴权信息
 
-`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看 [HeaderBars](./headerbars.md)。
+`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看 [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)。
 
 ---
 
@@ -80,41 +80,42 @@ const sdk = await connect({
 
 ### 常用配置
 
-| 配置项                       | 说明                                                                         |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `fileId`                     | 要打开的文档 ID                                                              |
-| `endpoint`                   | 石墨 SDK 服务地址                                                            |
-| `signature`                  | 用于石墨 SDK 鉴权的签名                                                      |
-| `token`                      | 用于接入方系统鉴权的 token                                                   |
-| `container`                  | iframe 挂载的目标容器元素                                                    |
-| `refreshCredentialsInterval` | 自动刷新鉴权信息的时间间隔，单位为毫秒                                       |
-| `getCredentials`             | 获取最新 `signature` 和 `token` 的异步方法                                   |
-| `headerBarsVisible`          | 顶部栏初始是否展示，`false` 表示隐藏                                         |
-| `lang`                       | 编辑器 locale，例如 `zh-CN`、`en-US`；未传时使用 iframe 服务端设置的默认语言 |
-| `smParams`                   | URL 上下文参数，可传 base62 字符串、对象，或由字符串和对象组成的数组         |
+| 配置项                       | 说明                                                                 |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `fileId`                     | 要打开的文档 ID                                                      |
+| `endpoint`                   | 石墨 SDK 服务地址                                                    |
+| `signature`                  | 用于石墨 SDK 鉴权的签名                                              |
+| `token`                      | 用于接入方系统鉴权的 token                                           |
+| `container`                  | iframe 挂载的目标容器元素                                            |
+| `refreshCredentialsInterval` | 自动刷新凭证的时间间隔，单位为毫秒；建议设为凭证过期时长的 80%       |
+| `getCredentials`             | 获取最新 `signature` 和 `token` 的异步方法                           |
+| `headerBarsVisible`          | 顶部栏初始是否展示，`false` 表示隐藏                                 |
+| `lang`                       | 编辑器界面语言，例如 `zh-CN`、`en-US`；未传时使用编辑器默认语言      |
+| `smParams`                   | URL 上下文参数，可传 base62 字符串、对象，或由字符串和对象组成的数组 |
 
-### 自动刷新鉴权
+### 凭证自动刷新（建议）
 
-`signature` 和 `token` 存在有效期。建议通过 `refreshCredentialsInterval` 和 `getCredentials` 配置自动刷新，避免用户长时间停留页面后因鉴权过期而中断编辑。
+`signature` 和 `token` 存在有效期。建议在 `ConnectOptions` 中配置 `refreshCredentialsInterval` 和 `getCredentials`，在凭证过期前自动刷新，避免用户长时间编辑时因凭证失效而中断。
 
 ```typescript
-const officeSDK = await connect({
-  signature: '[your signature]',
-  token: '[your token]',
-  // 更新鉴权的时间间隔，单位为毫秒
-  // 若过期时间为 7 天，则建议设置为 3.5 天
-  refreshCredentialsInterval: 1000 * 3600 * 24 * 3.5,
-  getCredentials: async () => {
-    const res = await getCredentialsFromServer()
-    return {
-      signature: res.signature,
-      token: res.token
-    }
-  }
-})
+const { expireMs } = (await appService.getExpireConfig()).data
+
+const options: ConnectOptions = {
+  ...config,
+  // 在过期时长的 80% 处刷新，给网络重试等情况预留时间
+  refreshCredentialsInterval: Math.ceil(expireMs * 0.8),
+  getCredentials: async () => (await appService.getCredentials()).data
+}
+
+const sdk = await connect(options)
 ```
 
-`getCredentials` 应从接入方后端获取最新鉴权信息，并返回同时包含 `signature` 和 `token` 的对象。
+示例配套接口：
+
+- `GET /api/apps/expire-config`：返回凭证过期时长，例如 `{ expireMs: 900000 }`
+- `GET /api/credentials`：返回新凭证，例如 `{ signature, token }`
+
+`getCredentials` 应从接入方后端获取最新凭证，并返回同时包含 `signature` 和 `token` 的对象。接口路径可按接入方系统实际情况调整。
 
 ### 顶部栏初始显示状态
 
@@ -129,27 +130,46 @@ const sdk = await connect({
 
 - `true` 或不传：初始展示顶部栏
 - `false`：初始隐藏顶部栏
-- 连接后如需动态切换，使用 `await sdk.headerBars.setVisible(visible)`，详见 [HeaderBars](./headerbars.md)
+- 连接后如需动态切换，使用 `await sdk.headerBars.setVisible(visible)`，详见 [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)
 
-### locale（编辑器语言）
+### 国际化：编辑器多语言（可选，co-1.8+）
 
-通过 `lang` 指定编辑器 locale：
+接入方可在调用 `connect` 时通过 `lang` 指定编辑器界面语言，传入对应语言码即可；不传时使用编辑器默认语言。
 
 ```typescript
-const sdk = await connect({
-  ...options,
-  lang: 'en-US'
-})
+const options: ConnectOptions = {
+  ...config,
+  lang: editorLang // 接入方决定传哪种语言码
+}
+
+const sdk = await connect(options)
 ```
 
-支持的标准值：
+常见做法是维护一个语言选项供用户切换。用户选择“系统默认”时省略 `lang`（或传 `undefined`；纯 JavaScript 也可传 `null`），选择其他语言时将对应语言码透传给 `connect`：
 
-- `zh-CN`、`zh-TW`
-- `en-US`、`ja-JP`、`ko-KR`
-- `es-ES`、`pt-PT`、`de-DE`、`fr-FR`、`it-IT`、`ru-RU`
-- `id-ID`、`vi-VN`、`th-TH`、`ms-MY`、`ar-SA`
+```typescript
+const options: ConnectOptions = {
+  ...config,
+  ...(editorLang ? { lang: editorLang } : {})
+}
 
-为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。未传 `lang` 时，iframe 使用服务端设置的默认语言。
+const sdk = await connect(options)
+```
+
+1.8 版本编辑器支持以下 16 种语言：
+
+| 语言          | `lang` 语言码 | 语言             | `lang` 语言码 |
+| ------------- | ------------- | ---------------- | ------------- |
+| 简体中文      | `zh-CN`       | 繁體中文         | `zh-TW`       |
+| English       | `en-US`       | 日本語           | `ja-JP`       |
+| 한국어        | `ko-KR`       | Español          | `es-ES`       |
+| Português     | `pt-PT`       | Deutsch          | `de-DE`       |
+| Français      | `fr-FR`       | Italiano         | `it-IT`       |
+| Русский       | `ru-RU`       | Bahasa Indonesia | `id-ID`       |
+| Tiếng Việt    | `vi-VN`       | ไทย              | `th-TH`       |
+| Bahasa Melayu | `ms-MY`       | العربية          | `ar-SA`       |
+
+为兼容旧版写法，仍可传入 `en`、`ja`，SDK 会分别映射为 `en-US`、`ja-JP`。新接入建议使用表中的标准语言码。
 
 ### 返回值
 
@@ -273,7 +293,7 @@ sdk.off(Event.Error, handleError)
 import { FileType } from 'weboffice-js-sdk'
 
 if (sdk.fileType === FileType.Document) {
-  console.log('当前是轻文档')
+  console.log('当前是文档')
 }
 ```
 
