@@ -242,8 +242,6 @@ editor.on('editForbiddenConfirmed', ({ reason }) => {
 - `signature` 为石墨区分请求来源，并实现数据隔离的基础
 - `token` 为您用于识别回调请求来源、是否合法的依据
 
-具体说明请查阅在线文档：[https://platform.shimo.im/v2/docs/concepts/](https://platform.shimo.im/v2/docs/concepts/)。
-
 由于 `signature` 和 `token` 有过期时间，建议在 `ConnectOptions` 中配置自动刷新，避免用户长时间编辑时因凭证失效而中断。
 
 ```typescript
