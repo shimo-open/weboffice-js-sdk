@@ -677,7 +677,6 @@ export function buildRootFacadeState(
         collaborator: collaboratorFacade,
         externalApp: externalAppFacade,
         version: versionFacade,
-        presentation: presentationFacade,
         selection: docsSelectionFacade,
         settings: host.createEditorFacadeModule<DocsSettingsFacade>(
           'settings',
@@ -701,7 +700,6 @@ export function buildRootFacadeState(
         mention: mentionFacade,
         content: contentFacade,
         version: versionFacade,
-        presentation: presentationFacade,
         workbook: sheetWorkbookFacade,
         activeSheet: createSheetWorksheetFacade(host, { active: true }),
         charts: host.createEditorFacadeModule<SheetChartsFacade>('charts', {}),

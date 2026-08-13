@@ -14,7 +14,6 @@
 | [sdk.mention.locateCellByGuid](#sdkmentionlocatecellbyguidguid-notificationtype) | 按通知定位单元格（PC only，`co-1.8+`）     |
 | [sdk.content.setContent](#sdkcontentsetcontentcontent)                           | 设置内容（PC only，`co-1.8+`）             |
 | [sdk.version.createRevision](#sdkversioncreaterevisionoptions)                   | 创建版本（PC only，`co-1.8+`）             |
-| [sdk.presentation](#sdkpresentation)                                             | 演示模式能力（PC only，`co-1.8+`）         |
 | [sdk.workbook](#sdkworkbook)                                                     | 工作簿能力（PC only，`co-1.8+`）           |
 | [sdk.activeSheet](#sdkactivesheet)                                               | 当前工作表能力（PC only，`co-1.8+`）       |
 | [range: SheetRangeFacade](#range-sheetrangefacade)                               | 工作表范围对象能力（PC only，`co-1.8+`）   |
@@ -68,8 +67,6 @@ await sdk.history?.show()
 | `sdk.getEditor().locateCellByGuid(guid, notificationType?)` | 按通知定位单元格 | `sdk.mention?.locateCellByGuid(guid, notificationType?)` |
 | `sdk.getEditor().setContent(content)`                       | 设置内容         | `sdk.content?.setContent(content)`                       |
 | `sdk.getEditor().createRevision(options?)`                  | 创建版本         | `sdk.version?.createRevision(options?)`                  |
-| `sdk.getEditor().startDemonstration()`                      | 启动演示         | `sdk.presentation?.start(index?)`                        |
-| `sdk.getEditor().endDemonstration()`                        | 退出演示         | `sdk.presentation?.quit()`                               |
 
 ### 新增 API 方法
 
@@ -196,23 +193,6 @@ sdk.content?.setContent(content: Content): Promise<void>
 ```typescript
 sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 ```
-
----
-
-### sdk.presentation
-
-#### 说明
-
-表格演示模式能力。
-
-#### 类型定义
-
-```typescript
-sdk.presentation?.start(index?: number): Promise<void>
-sdk.presentation?.quit(): Promise<void>
-```
-
----
 
 ### sdk.workbook
 

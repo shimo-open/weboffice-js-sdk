@@ -153,6 +153,7 @@ const sdk = await connect(options)
 
 await sdk.history?.show()
 await sdk.version?.createRevision()
+// 演示能力仅在幻灯片套件（presentation）下挂载
 await sdk.presentation?.start()
 ```
 

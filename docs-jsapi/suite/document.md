@@ -15,7 +15,6 @@
 | [sdk.discussion.show](#sdkdiscussionshow)                           | 显示讨论（PC only，`co-1.8+`）           |
 | [sdk.discussion.hide](#sdkdiscussionhide)                           | 隐藏讨论（PC only，`co-1.8+`）           |
 | [sdk.version](#sdkversion)                                          | 版本能力（PC only，`co-1.8+`）           |
-| [sdk.presentation.start](#sdkpresentationstartindex)                | 启动演示（PC only，`co-1.8+`）           |
 | [sdk.selection](#sdkselection)                                      | 选区能力（PC only，`co-1.8+`）           |
 | [range: DocsRangeFacade](#range-docsrangefacade)                    | 选区范围对象能力（PC only，`co-1.8+`）   |
 | [sdk.search](#sdksearch)                                            | 搜索与替换（PC only，`co-1.8+`）         |
@@ -64,7 +63,6 @@ await sdk.title?.setTitle('Weekly Report')
 | `sdk.getEditor().setTitle(title)`                 | 设置文档标题   | `sdk.title?.setTitle(title)`            |
 | `sdk.getEditor().showComments()`                  | 显示评论侧边栏 | `sdk.comments?.show()`                  |
 | `sdk.getEditor().hideComments()`                  | 隐藏评论侧边栏 | `sdk.comments?.hide()`                  |
-| `sdk.getEditor().startDemonstration()`            | 启动演示       | `sdk.presentation?.start(index?)`       |
 | `sdk.getEditor().showHistory()`                   | 显示历史侧边栏 | `sdk.history?.show()`                   |
 | `sdk.getEditor().hideHistory()`                   | 隐藏历史侧边栏 | `sdk.history?.hide()`                   |
 | `sdk.getEditor().showRevision()`                  | 显示版本侧边栏 | `sdk.version?.show?.()`                 |
@@ -74,7 +72,6 @@ await sdk.title?.setTitle('Weekly Report')
 | `sdk.getEditor().showToc()`                       | 显示目录       | `sdk.outline?.show()`                   |
 | `sdk.getEditor().hideToc()`                       | 隐藏目录       | `sdk.outline?.hide()`                   |
 | `sdk.getEditor().createRevision(options?)`        | 创建版本       | `sdk.version?.createRevision(options?)` |
-| `sdk.getEditor().endDemonstration()`              | 退出演示       | `sdk.presentation?.quit()`              |
 | `sdk.getEditor().print()`                         | 打印           | `sdk.print?.()`                         |
 | `sdk.getEditor().showCollaborator()`              | 显示编写者信息 | `sdk.collaborator?.show()`              |
 | `sdk.getEditor().hideCollaborator()`              | 隐藏编写者信息 | `sdk.collaborator?.hide()`              |
@@ -238,40 +235,6 @@ sdk.version?.createRevision(
 
 - [RevisionCreateOptions](#revisioncreateoptions)
 - [DocumentErrorMessage](#documenterrormessage)
-
----
-
-### sdk.presentation.start(index?)
-
-#### 说明
-
-启动文档演示模式。
-
-#### 类型定义
-
-```typescript
-sdk.presentation?.start(index?: number): Promise<void>
-```
-
-#### 参数
-
-- `index`: 可选的起始位置参数
-
----
-
-### sdk.presentation.quit()
-
-#### 说明
-
-退出文档演示模式。
-
-#### 类型定义
-
-```typescript
-sdk.presentation?.quit(): Promise<void>
-```
-
----
 
 ### sdk.selection
 

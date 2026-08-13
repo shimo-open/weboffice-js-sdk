@@ -270,7 +270,8 @@ export class OfficeSDK extends TinyEmitter {
   version?: VersionFacade
 
   /**
-   * 当前套件支持的演示能力。
+   * 幻灯片套件（Presentation）的演示能力，仅在幻灯片文件下挂载。
+   * 文档与表格套件不暴露演示 API，演示模式仅作为编辑器内 headerBars 能力保留。
    */
   presentation?: PresentationFacade
 
