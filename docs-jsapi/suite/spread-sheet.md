@@ -67,6 +67,8 @@ await sdk.history?.show()
 | `sdk.getEditor().locateCellByGuid(guid, notificationType?)` | 按通知定位单元格 | `sdk.mention?.locateCellByGuid(guid, notificationType?)` |
 | `sdk.getEditor().setContent(content)`                       | 设置内容         | `sdk.content?.setContent(content)`                       |
 | `sdk.getEditor().createRevision(options?)`                  | 创建版本         | `sdk.version?.createRevision(options?)`                  |
+| `sdk.getEditor().startDemonstration()`                      | 启动编辑器演示   | 继续使用旧方法（无根级 facade）                          |
+| `sdk.getEditor().endDemonstration()`                        | 退出编辑器演示   | 继续使用旧方法（无根级 facade）                          |
 
 ### 新增 API 方法
 
@@ -942,5 +944,10 @@ interface AddChartFromSelectionResult {
   chartType: string
 }
 ```
+
+## 注意事项
+
+- 表格套件不挂载根级 `sdk.presentation` facade。
+- 编辑器内演示能力继续使用 `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口。
 
 ---

@@ -330,6 +330,34 @@ function createPresentationSlideFacade(
   )
 }
 
+function createPresentationFacade(host: FacadeHost): PresentationFacade {
+  return {
+    start: async (index?: number) => {
+      await host.invokeEditorFacade(
+        'presentation.start',
+        typeof index === 'number' ? [index] : []
+      )
+    },
+    quit: async () => {
+      await host.invokeEditorFacade('presentation.quit')
+    },
+    startFromCurrent: async () => {
+      await host.invokeEditorFacade('presentation.startFromCurrent')
+    },
+    startRemoteLive: async () => {
+      await host.invokeEditorFacade('presentation.startRemoteLive')
+    },
+    startSpeakerView: async () => {
+      await host.invokeEditorFacade('presentation.startSpeakerView')
+    },
+    addChangeListener: (listener: (payload: unknown) => void) =>
+      host.registerEditorFacadeListener(
+        'presentation.addChangeListener',
+        listener
+      )
+  }
+}
+
 export function buildRootFacadeState(
   host: FacadeHost
 ): OfficeSDKRootFacadeState {
@@ -437,32 +465,6 @@ export function buildRootFacadeState(
       await host.invokeEditorFacade('version.createRevision', [options])
       return undefined
     }
-  }
-
-  const presentationFacade: PresentationFacade = {
-    start: async (index?: number) => {
-      await host.invokeEditorFacade(
-        'presentation.start',
-        typeof index === 'number' ? [index] : []
-      )
-    },
-    quit: async () => {
-      await host.invokeEditorFacade('presentation.quit')
-    },
-    startFromCurrent: async () => {
-      await host.invokeEditorFacade('presentation.startFromCurrent')
-    },
-    startRemoteLive: async () => {
-      await host.invokeEditorFacade('presentation.startRemoteLive')
-    },
-    startSpeakerView: async () => {
-      await host.invokeEditorFacade('presentation.startSpeakerView')
-    },
-    addChangeListener: (listener: (payload: unknown) => void) =>
-      host.registerEditorFacadeListener(
-        'presentation.addChangeListener',
-        listener
-      )
   }
 
   const batchChangesFacade = async <T>(
@@ -717,7 +719,7 @@ export function buildRootFacadeState(
         history: historyFacade,
         comments: commentsFacade,
         version: versionFacade,
-        presentation: presentationFacade,
+        presentation: createPresentationFacade(host),
         slides: presentationSlidesFacade,
         selection: presentationSelectionFacade,
         text: host.createEditorFacadeModule<PresentationTextFacade>('text', {}),

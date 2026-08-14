@@ -72,6 +72,8 @@ await sdk.title?.setTitle('Weekly Report')
 | `sdk.getEditor().showToc()`                       | 显示目录       | `sdk.outline?.show()`                   |
 | `sdk.getEditor().hideToc()`                       | 隐藏目录       | `sdk.outline?.hide()`                   |
 | `sdk.getEditor().createRevision(options?)`        | 创建版本       | `sdk.version?.createRevision(options?)` |
+| `sdk.getEditor().startDemonstration(options?)`    | 启动编辑器演示 | 继续使用旧方法（无根级 facade）         |
+| `sdk.getEditor().endDemonstration(options?)`      | 退出编辑器演示 | 继续使用旧方法（无根级 facade）         |
 | `sdk.getEditor().print()`                         | 打印           | `sdk.print?.()`                         |
 | `sdk.getEditor().showCollaborator()`              | 显示编写者信息 | `sdk.collaborator?.show()`              |
 | `sdk.getEditor().hideCollaborator()`              | 隐藏编写者信息 | `sdk.collaborator?.hide()`              |
@@ -1262,5 +1264,10 @@ interface DocsDefaultStyle {
   lineSpacing: string
 }
 ```
+
+## 注意事项
+
+- 文档套件不挂载根级 `sdk.presentation` facade。
+- 编辑器内演示能力继续使用 `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口。
 
 ---

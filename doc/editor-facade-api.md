@@ -61,6 +61,7 @@ const sdk = await connect(options)
 await sdk.title?.setTitle('Weekly Report')
 await sdk.comments?.show()
 await sdk.history?.show()
+// 仅幻灯片套件可用
 await sdk.presentation?.start()
 ```
 
@@ -78,6 +79,10 @@ await sdk.getEditor().showHistory?.()
 // 新写法
 await sdk.title?.setTitle('Weekly Report')
 await sdk.history?.show()
+
+// Document / Spreadsheet 的编辑器内演示继续使用旧入口，
+// 不映射为根级 sdk.presentation facade。
+await sdk.getEditor().startDemonstration?.()
 ```
 
 ## 方法列表
@@ -102,7 +107,6 @@ await sdk.history?.show()
 | `sdk.presentation?.start(index?)`                        | 启动演示（仅幻灯片套件）         | `PC only` |
 | `sdk.presentation?.quit()`                               | 退出演示（仅幻灯片套件）         | `PC only` |
 | `sdk.presentation?.startFromCurrent()`                   | 从当前页开始演示（仅幻灯片套件） | `PC only` |
-| `sdk.presentation?.startRemoteLive()`                    | 启动远程演示（仅幻灯片套件）     | `PC only` |
 | `sdk.presentation?.startSpeakerView()`                   | 启动演讲者视图（仅幻灯片套件）   | `PC only` |
 | `sdk.selection?.*`                                       | docs / presentation 选区能力     | `PC only` |
 | `sdk.search?.*`                                          | docs 搜索与替换                  | `PC only` |

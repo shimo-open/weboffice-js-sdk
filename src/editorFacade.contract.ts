@@ -81,7 +81,25 @@ export type EditorFacadeContractAssertions = [
   >,
   Assert<
     IsAssignable<
+      NonNullable<OfficeSDK['presentation']>['quit'],
+      () => Promise<void>
+    >
+  >,
+  Assert<
+    IsAssignable<
       NonNullable<OfficeSDK['presentation']>['startFromCurrent'],
+      () => Promise<void>
+    >
+  >,
+  Assert<
+    IsAssignable<
+      NonNullable<OfficeSDK['presentation']>['startRemoteLive'],
+      () => Promise<void>
+    >
+  >,
+  Assert<
+    IsAssignable<
+      NonNullable<OfficeSDK['presentation']>['startSpeakerView'],
       () => Promise<void>
     >
   >,

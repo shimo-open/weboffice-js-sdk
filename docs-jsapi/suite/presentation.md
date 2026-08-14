@@ -148,10 +148,6 @@ sdk.presentation?.startFromCurrent(): Promise<void>
 sdk.presentation?.startSpeakerView(): Promise<void>
 ```
 
-#### 说明补充
-
-- `sdk.presentation?.startRemoteLive()` 当前未在 `presentation` 套件承接
-
 ---
 
 ### sdk.slides
@@ -916,5 +912,10 @@ interface EditorTextFormat {
   family: string
 }
 ```
+
+## 注意事项
+
+- 根级 `sdk.presentation` facade 仅在幻灯片套件下挂载。
+- `sdk.presentation?.startRemoteLive()` 当前仅存在于 facade 类型空间，iframe receiver 尚未承接，调用前需等待运行时支持。
 
 ---
