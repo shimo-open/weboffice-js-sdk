@@ -829,7 +829,7 @@ interface SheetCellFacade {
 
 ```typescript
 interface SheetSelection {
-  getRange(value?: SheetRangeValue): SheetRangeFacade | null
+  getRange(value?: SheetRangeValue): Promise<SheetRangeFacade | null>
   setRange(value: SheetRangeValue | null): Promise<void>
 }
 ```

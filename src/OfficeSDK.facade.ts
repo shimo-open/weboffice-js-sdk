@@ -34,6 +34,10 @@ import type {
   PresentationSelectionFacade,
   PresentationSlideFacade,
   PresentationSlidesFacade,
+  PresentationTableCell,
+  PresentationTableItem,
+  PresentationTableRange,
+  PresentationTableSelection,
   PresentationTextFacade,
   PresentationTextRangeFacade,
   PresentationTextRangeValue,
@@ -45,6 +49,7 @@ import type {
   SheetCellFacade,
   SheetRangeFacade,
   SheetRangeValue,
+  SheetSelection,
   SheetSelectionsFacade,
   SheetWorkbookFacade,
   SheetWorksheetFacade,
@@ -185,6 +190,43 @@ function createSheetCellFacade(
   )
 }
 
+interface SheetSelectionLocator {
+  kind: 'sheet.selection'
+  sheetId: string
+  selectionId: string
+}
+
+function createSheetSelectionFacade(
+  host: FacadeHost,
+  locator: SheetSelectionLocator
+): SheetSelection {
+  return host.createValueObjectFacade<SheetSelection>(
+    'sheet.selection',
+    locator as unknown as Record<string, unknown>,
+    {
+      getRange: async (value?: SheetRangeValue) => {
+        const rangeLocator = await host.invokeEditorFacade<{
+          sheetId: string
+          row: number
+          column: number
+          rowCount: number
+          columnCount: number
+        } | null>(
+          'sheet.selection.getRange',
+          typeof value === 'undefined' ? [locator] : [locator, value]
+        )
+        return createSheetRangeFacade(host, rangeLocator)
+      },
+      setRange: async (value: SheetRangeValue | null) => {
+        await host.invokeEditorFacade('sheet.selection.setRange', [
+          locator,
+          value
+        ])
+      }
+    }
+  )
+}
+
 function createSheetWorksheetFacade(
   host: FacadeHost,
   locator: {
@@ -200,6 +242,16 @@ function createSheetWorksheetFacade(
     {
       id: locator.id,
       name: locator.name,
+      getSelections: async () => {
+        const selections = await host.invokeEditorFacade<
+          SheetSelectionLocator[] | null
+        >('sheet.worksheet.getSelections', [locator])
+        return (
+          selections?.map((selection) =>
+            createSheetSelectionFacade(host, selection)
+          ) ?? null
+        )
+      },
       getRange: async (value: SheetRangeValue) => {
         const rangeLocator = await host.invokeEditorFacade<{
           sheetId?: string
@@ -282,6 +334,89 @@ function createPresentationShapeFacade(
   )
 }
 
+interface PresentationTableLocator {
+  kind: 'presentation.table'
+  slideId: string
+  tableId: string
+  id: string
+  rowCount: number
+  columnCount: number
+}
+
+interface PresentationTableCellLocator {
+  kind: 'presentation.table.cell'
+  slideId: string
+  tableId: string
+  row: number
+  column: number
+}
+
+interface PresentationTableRangeLocator {
+  kind: 'presentation.table.range'
+  slideId: string
+  tableId: string
+  range: PresentationTableSelection
+}
+
+function createPresentationTableCellFacade(
+  host: FacadeHost,
+  locator: PresentationTableCellLocator | null | undefined
+): PresentationTableCell | null {
+  if (!locator) {
+    return null
+  }
+  return host.createValueObjectFacade<PresentationTableCell>(
+    'slides.slide.table.cell',
+    locator as unknown as Record<string, unknown>,
+    {}
+  )
+}
+
+function createPresentationTableRangeFacade(
+  host: FacadeHost,
+  locator: PresentationTableRangeLocator | null | undefined
+): PresentationTableRange | null {
+  if (!locator) {
+    return null
+  }
+  return host.createValueObjectFacade<PresentationTableRange>(
+    'slides.slide.table.range',
+    locator as unknown as Record<string, unknown>,
+    {}
+  )
+}
+
+function createPresentationTableFacade(
+  host: FacadeHost,
+  locator: PresentationTableLocator
+): PresentationTableItem {
+  return host.createValueObjectFacade<PresentationTableItem>(
+    'slides.slide.table',
+    locator as unknown as Record<string, unknown>,
+    {
+      id: locator.id,
+      rowCount: locator.rowCount,
+      columnCount: locator.columnCount,
+      getCell: async (row: number, column: number) => {
+        const cellLocator =
+          await host.invokeEditorFacade<PresentationTableCellLocator | null>(
+            'slides.slide.table.getCell',
+            [locator, row, column]
+          )
+        return createPresentationTableCellFacade(host, cellLocator)
+      },
+      getRange: async (range: PresentationTableSelection) => {
+        const rangeLocator =
+          await host.invokeEditorFacade<PresentationTableRangeLocator | null>(
+            'slides.slide.table.getRange',
+            [locator, range]
+          )
+        return createPresentationTableRangeFacade(host, rangeLocator)
+      }
+    }
+  )
+}
+
 function createPresentationSlideFacade(
   host: FacadeHost,
   locator: {
@@ -314,6 +449,12 @@ function createPresentationSlideFacade(
           .map((shape) => createPresentationShapeFacade(host, shape))
           .filter((shape): shape is PresentationShape => shape !== null)
       },
+      getTables: async () => {
+        const tables = await host.invokeEditorFacade<
+          PresentationTableLocator[]
+        >('slides.slide.getTables', [locator])
+        return tables.map((table) => createPresentationTableFacade(host, table))
+      },
       insertShape,
       insertTextBox: async (options) => {
         const shape =
@@ -326,6 +467,13 @@ function createPresentationSlideFacade(
           throw new Error('presentation text shape not found')
         }
         return facade as PresentationTextShape
+      },
+      insertTable: async (options) => {
+        const table = await host.invokeEditorFacade<PresentationTableLocator>(
+          'slides.slide.insertTable',
+          [locator, options]
+        )
+        return createPresentationTableFacade(host, table)
       }
     }
   )
