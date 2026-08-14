@@ -10,6 +10,10 @@ import type {
   PresentationSlideFacade,
   PresentationShape,
   PresentationShapeBase,
+  PresentationTableCell,
+  PresentationTableItem,
+  PresentationTableRange,
+  PresentationTableSelection,
   PresentationTextShape,
   PresentationTextRangeFacade,
   PresentationTextRangeValue,
@@ -19,6 +23,13 @@ import type {
 } from './OfficeSDK'
 
 type IsAssignable<T, U> = T extends U ? true : false
+type IsEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => V extends U
+  ? 1
+  : 2
+  ? (<V>() => V extends U ? 1 : 2) extends <V>() => V extends T ? 1 : 2
+    ? true
+    : false
+  : false
 type Assert<T extends true> = T
 type RootSelection = NonNullable<OfficeSDK['selection']>
 type DocsSelection = Extract<
@@ -239,5 +250,45 @@ export type EditorFacadeContractAssertions = [
       NonNullable<OfficeSDK['eventSubscription']>['addLoadedListener'],
       (listener: () => void) => () => void
     >
-  >
+  >,
+  Assert<
+    IsEqual<
+      SheetSelection['getRange'],
+      (value?: SheetRangeValue) => Promise<SheetRangeFacade | null>
+    >
+  >,
+  Assert<IsEqual<SheetSelection['id'], string>>,
+  Assert<
+    IsEqual<
+      PresentationShapeBase['setFill'],
+      (fill: import('./OfficeSDK').PresentationShapeFill) => Promise<void>
+    >
+  >,
+  Assert<IsEqual<PresentationShapeBase['remove'], () => Promise<void>>>,
+  Assert<
+    IsEqual<
+      PresentationTableItem['getCell'],
+      (row: number, column: number) => Promise<PresentationTableCell | null>
+    >
+  >,
+  Assert<
+    IsEqual<
+      PresentationTableItem['getRange'],
+      (
+        range: PresentationTableSelection
+      ) => Promise<PresentationTableRange | null>
+    >
+  >,
+  Assert<
+    IsEqual<
+      PresentationTableItem['insertRows'],
+      (
+        index: number,
+        count: number,
+        placement?: 'before' | 'after'
+      ) => Promise<void>
+    >
+  >,
+  Assert<IsEqual<PresentationTableCell['clearStyle'], () => Promise<void>>>,
+  Assert<IsEqual<PresentationTableRange['setSpan'], () => Promise<void>>>
 ]

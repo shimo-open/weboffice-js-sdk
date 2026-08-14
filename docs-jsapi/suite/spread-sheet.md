@@ -829,10 +829,13 @@ interface SheetCellFacade {
 
 ```typescript
 interface SheetSelection {
-  getRange(value?: SheetRangeValue): SheetRangeFacade | null
+  id: string
+  getRange(value?: SheetRangeValue): Promise<SheetRangeFacade | null>
   setRange(value: SheetRangeValue | null): Promise<void>
 }
 ```
+
+`id` 是当前 iframe runtime 内稳定的选区标识，可用于区分同一次 `getSelections()` 返回的对象；iframe 刷新、重连或重新获取选区后不应复用旧 `id`。
 
 ### SheetRangeValue
 

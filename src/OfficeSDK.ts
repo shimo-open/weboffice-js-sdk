@@ -148,7 +148,12 @@ const PRELOAD_MESSAGE_TYPE = {
   DONE: 'SDK_PRELOAD_DONE',
   ERROR: 'SDK_PRELOAD_ERROR'
 } as const
-const PROMISE_LIKE_PROXY_PROPS = new Set(['then', 'catch', 'finally'])
+const FACADE_PROXY_SKIPPED_PROPS = new Set([
+  'then',
+  'catch',
+  'finally',
+  'toJSON'
+])
 
 type EditorFacadeCallback = (...args: unknown[]) => unknown | Promise<unknown>
 
@@ -188,7 +193,7 @@ function isSlashMenuEntry(
 }
 
 function shouldSkipFacadeProxyProp(prop: string): boolean {
-  return PROMISE_LIKE_PROXY_PROPS.has(prop)
+  return FACADE_PROXY_SKIPPED_PROPS.has(prop)
 }
 
 export const MessageEvent = InvokeMethod
