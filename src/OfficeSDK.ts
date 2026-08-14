@@ -85,8 +85,8 @@ import type {
   HistoryFacade,
   LocksFacade,
   MentionFacade,
+  OfficeSDKPresentationFacade,
   PresentationEventSubscriptionFacade,
-  PresentationFacade,
   PresentationSelectionFacade,
   PresentationSlidesFacade,
   PresentationTextFacade,
@@ -270,10 +270,10 @@ export class OfficeSDK extends TinyEmitter {
   version?: VersionFacade
 
   /**
-   * 幻灯片套件（Presentation）的演示能力，仅在幻灯片文件下挂载。
-   * 文档与表格套件不暴露演示 API，演示模式仅作为编辑器内 headerBars 能力保留。
+   * 当前套件支持的演示能力。
+   * 文档与表格支持 start / quit，幻灯片套件额外支持完整演示能力。
    */
-  presentation?: PresentationFacade
+  presentation?: OfficeSDKPresentationFacade
 
   /**
    * 当前套件支持的选区能力。

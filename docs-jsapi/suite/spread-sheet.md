@@ -14,6 +14,8 @@
 | [sdk.mention.locateCellByGuid](#sdkmentionlocatecellbyguidguid-notificationtype) | 按通知定位单元格（PC only，`co-1.8+`）     |
 | [sdk.content.setContent](#sdkcontentsetcontentcontent)                           | 设置内容（PC only，`co-1.8+`）             |
 | [sdk.version.createRevision](#sdkversioncreaterevisionoptions)                   | 创建版本（PC only，`co-1.8+`）             |
+| [sdk.presentation.start](#sdkpresentationstart)                                  | 启动演示（PC only，`co-1.8+`）             |
+| [sdk.presentation.quit](#sdkpresentationquit)                                    | 退出演示（PC only，`co-1.8+`）             |
 | [sdk.workbook](#sdkworkbook)                                                     | 工作簿能力（PC only，`co-1.8+`）           |
 | [sdk.activeSheet](#sdkactivesheet)                                               | 当前工作表能力（PC only，`co-1.8+`）       |
 | [range: SheetRangeFacade](#range-sheetrangefacade)                               | 工作表范围对象能力（PC only，`co-1.8+`）   |
@@ -31,6 +33,7 @@
 const sdk = await connect(options)
 
 await sdk.history?.show()
+await sdk.presentation?.start()
 const sheets = await sdk.workbook?.getWorksheets()
 const activeSheet = await sdk.workbook?.getActiveWorksheet()
 await activeSheet?.locateCell(1, 1)
@@ -67,8 +70,8 @@ await sdk.history?.show()
 | `sdk.getEditor().locateCellByGuid(guid, notificationType?)` | 按通知定位单元格 | `sdk.mention?.locateCellByGuid(guid, notificationType?)` |
 | `sdk.getEditor().setContent(content)`                       | 设置内容         | `sdk.content?.setContent(content)`                       |
 | `sdk.getEditor().createRevision(options?)`                  | 创建版本         | `sdk.version?.createRevision(options?)`                  |
-| `sdk.getEditor().startDemonstration()`                      | 启动编辑器演示   | 继续使用旧方法（无根级 facade）                          |
-| `sdk.getEditor().endDemonstration()`                        | 退出编辑器演示   | 继续使用旧方法（无根级 facade）                          |
+| `sdk.getEditor().startDemonstration()`                      | 启动编辑器演示   | `sdk.presentation?.start()`                              |
+| `sdk.getEditor().endDemonstration()`                        | 退出编辑器演示   | `sdk.presentation?.quit()`                               |
 
 ### 新增 API 方法
 
@@ -195,6 +198,36 @@ sdk.content?.setContent(content: Content): Promise<void>
 ```typescript
 sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 ```
+
+---
+
+### sdk.presentation.start()
+
+#### 说明
+
+启动表格演示模式。
+
+#### 类型定义
+
+```typescript
+sdk.presentation?.start(): Promise<void>
+```
+
+---
+
+### sdk.presentation.quit()
+
+#### 说明
+
+退出表格演示模式。
+
+#### 类型定义
+
+```typescript
+sdk.presentation?.quit(): Promise<void>
+```
+
+---
 
 ### sdk.workbook
 
@@ -947,7 +980,8 @@ interface AddChartFromSelectionResult {
 
 ## 注意事项
 
-- 表格套件不挂载根级 `sdk.presentation` facade。
-- 编辑器内演示能力继续使用 `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口。
+- 表格套件的根级 `sdk.presentation` 仅支持 `start()` 和 `quit()`。
+- `startFromCurrent()`、`startRemoteLive()`、`startSpeakerView()` 和 `addChangeListener()` 仅在幻灯片套件提供。
+- `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口继续兼容。
 
 ---

@@ -1,10 +1,12 @@
 import type {
   AddChartFromSelectionResult,
+  BasicPresentationFacade,
   DocsRangeFacade,
   DocsRangeValue,
   DocsTableFacade,
   EditorTextFormat,
   OfficeSDK,
+  PresentationFacade,
   PresentationSlideFacade,
   PresentationShape,
   PresentationShapeBase,
@@ -31,6 +33,7 @@ type PresentationSelection = Extract<
     ) => Promise<PresentationTextRangeFacade | null>
   }
 >
+type RootPresentation = NonNullable<OfficeSDK['presentation']>
 
 export type EditorFacadeContractAssertions = [
   Assert<
@@ -73,39 +76,24 @@ export type EditorFacadeContractAssertions = [
       >
     >
   >,
+  Assert<IsAssignable<RootPresentation, BasicPresentationFacade>>,
+  Assert<IsAssignable<RootPresentation['start'], () => Promise<void>>>,
+  Assert<IsAssignable<RootPresentation['quit'], () => Promise<void>>>,
   Assert<
-    IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['start'],
-      (index?: number) => Promise<void>
-    >
+    IsAssignable<PresentationFacade['start'], (index?: number) => Promise<void>>
+  >,
+  Assert<
+    IsAssignable<PresentationFacade['startFromCurrent'], () => Promise<void>>
+  >,
+  Assert<
+    IsAssignable<PresentationFacade['startRemoteLive'], () => Promise<void>>
+  >,
+  Assert<
+    IsAssignable<PresentationFacade['startSpeakerView'], () => Promise<void>>
   >,
   Assert<
     IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['quit'],
-      () => Promise<void>
-    >
-  >,
-  Assert<
-    IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['startFromCurrent'],
-      () => Promise<void>
-    >
-  >,
-  Assert<
-    IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['startRemoteLive'],
-      () => Promise<void>
-    >
-  >,
-  Assert<
-    IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['startSpeakerView'],
-      () => Promise<void>
-    >
-  >,
-  Assert<
-    IsAssignable<
-      NonNullable<OfficeSDK['presentation']>['addChangeListener'],
+      PresentationFacade['addChangeListener'],
       (listener: (payload: unknown) => void) => () => void
     >
   >,

@@ -770,14 +770,22 @@ export interface VersionFacade {
   ) => Promise<undefined | null | DocumentErrorMessage>
 }
 
-export interface PresentationFacade {
-  start: (index?: number) => Promise<void>
+export interface BasicPresentationFacade {
+  start: () => Promise<void>
   quit: () => Promise<void>
+}
+
+export interface PresentationFacade extends BasicPresentationFacade {
+  start: (index?: number) => Promise<void>
   startFromCurrent: () => Promise<void>
   startRemoteLive: () => Promise<void>
   startSpeakerView: () => Promise<void>
   addChangeListener: (listener: (payload: unknown) => void) => () => void
 }
+
+export type OfficeSDKPresentationFacade =
+  | BasicPresentationFacade
+  | PresentationFacade
 
 export interface DocsRangeFacade {
   start: number
@@ -1176,7 +1184,7 @@ export interface OfficeSDKRootFacadeState {
   mention?: MentionFacade
   content?: ContentFacade
   version?: VersionFacade
-  presentation?: PresentationFacade
+  presentation?: OfficeSDKPresentationFacade
   selection?: DocsSelectionFacade | PresentationSelectionFacade
   search?: DocsSearchFacade
   outline?: DocsOutlineFacade

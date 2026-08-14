@@ -15,6 +15,8 @@
 | [sdk.discussion.show](#sdkdiscussionshow)                           | 显示讨论（PC only，`co-1.8+`）           |
 | [sdk.discussion.hide](#sdkdiscussionhide)                           | 隐藏讨论（PC only，`co-1.8+`）           |
 | [sdk.version](#sdkversion)                                          | 版本能力（PC only，`co-1.8+`）           |
+| [sdk.presentation.start](#sdkpresentationstart)                     | 启动演示（PC only，`co-1.8+`）           |
+| [sdk.presentation.quit](#sdkpresentationquit)                       | 退出演示（PC only，`co-1.8+`）           |
 | [sdk.selection](#sdkselection)                                      | 选区能力（PC only，`co-1.8+`）           |
 | [range: DocsRangeFacade](#range-docsrangefacade)                    | 选区范围对象能力（PC only，`co-1.8+`）   |
 | [sdk.search](#sdksearch)                                            | 搜索与替换（PC only，`co-1.8+`）         |
@@ -38,6 +40,7 @@ const sdk = await connect(options)
 
 await sdk.title?.setTitle('Weekly Report')
 await sdk.comments?.show('list')
+await sdk.presentation?.start()
 const range = await sdk.selection?.getRange()
 await range?.setText('Hello')
 ```
@@ -72,8 +75,8 @@ await sdk.title?.setTitle('Weekly Report')
 | `sdk.getEditor().showToc()`                       | 显示目录       | `sdk.outline?.show()`                   |
 | `sdk.getEditor().hideToc()`                       | 隐藏目录       | `sdk.outline?.hide()`                   |
 | `sdk.getEditor().createRevision(options?)`        | 创建版本       | `sdk.version?.createRevision(options?)` |
-| `sdk.getEditor().startDemonstration(options?)`    | 启动编辑器演示 | 继续使用旧方法（无根级 facade）         |
-| `sdk.getEditor().endDemonstration(options?)`      | 退出编辑器演示 | 继续使用旧方法（无根级 facade）         |
+| `sdk.getEditor().startDemonstration(options?)`    | 启动编辑器演示 | `sdk.presentation?.start()`             |
+| `sdk.getEditor().endDemonstration(options?)`      | 退出编辑器演示 | `sdk.presentation?.quit()`              |
 | `sdk.getEditor().print()`                         | 打印           | `sdk.print?.()`                         |
 | `sdk.getEditor().showCollaborator()`              | 显示编写者信息 | `sdk.collaborator?.show()`              |
 | `sdk.getEditor().hideCollaborator()`              | 隐藏编写者信息 | `sdk.collaborator?.hide()`              |
@@ -237,6 +240,36 @@ sdk.version?.createRevision(
 
 - [RevisionCreateOptions](#revisioncreateoptions)
 - [DocumentErrorMessage](#documenterrormessage)
+
+---
+
+### sdk.presentation.start()
+
+#### 说明
+
+启动文档演示模式。
+
+#### 类型定义
+
+```typescript
+sdk.presentation?.start(): Promise<void>
+```
+
+---
+
+### sdk.presentation.quit()
+
+#### 说明
+
+退出文档演示模式。
+
+#### 类型定义
+
+```typescript
+sdk.presentation?.quit(): Promise<void>
+```
+
+---
 
 ### sdk.selection
 
@@ -1267,7 +1300,8 @@ interface DocsDefaultStyle {
 
 ## 注意事项
 
-- 文档套件不挂载根级 `sdk.presentation` facade。
-- 编辑器内演示能力继续使用 `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口。
+- 文档套件的根级 `sdk.presentation` 仅支持 `start()` 和 `quit()`。
+- `startFromCurrent()`、`startRemoteLive()`、`startSpeakerView()` 和 `addChangeListener()` 仅在幻灯片套件提供。
+- `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口继续兼容。
 
 ---

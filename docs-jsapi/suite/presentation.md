@@ -139,6 +139,8 @@ sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 
 演示模式能力。
 
+`OfficeSDK.presentation` 按套件能力声明为基础 facade 与完整 facade 的联合类型。调用幻灯片专属方法前，可通过 `startFromCurrent` 属性进行类型收窄。
+
 #### 类型定义
 
 ```typescript
@@ -147,6 +149,15 @@ sdk.presentation?.quit(): Promise<void>
 sdk.presentation?.startFromCurrent(): Promise<void>
 sdk.presentation?.startRemoteLive(): Promise<void>
 sdk.presentation?.startSpeakerView(): Promise<void>
+```
+
+```typescript
+const presentation = sdk.presentation
+
+if (presentation && 'startFromCurrent' in presentation) {
+  await presentation.start(0)
+  await presentation.startFromCurrent()
+}
 ```
 
 ---
@@ -916,6 +927,6 @@ interface EditorTextFormat {
 
 ## 注意事项
 
-- 根级 `sdk.presentation` facade 仅在幻灯片套件下挂载。
+- 文档与表格套件的根级 `sdk.presentation` 仅提供 `start()` 和 `quit()`；本页其余演示方法仅在幻灯片套件提供。
 
 ---

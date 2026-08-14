@@ -1,6 +1,7 @@
 import { FileType } from 'weboffice-js-sdk-shared'
 
 import type {
+  BasicPresentationFacade,
   CollaboratorFacade,
   AddRangeLockParams,
   AddSheetLockParams,
@@ -358,6 +359,32 @@ function createPresentationFacade(host: FacadeHost): PresentationFacade {
   }
 }
 
+function createDocumentPresentationFacade(
+  host: FacadeHost
+): BasicPresentationFacade {
+  return {
+    start: async () => {
+      await host.invokeEditorFacade('presentation.start')
+    },
+    quit: async () => {
+      await host.invokeEditorFacade('presentation.quit')
+    }
+  }
+}
+
+function createSpreadsheetPresentationFacade(
+  host: FacadeHost
+): BasicPresentationFacade {
+  return {
+    start: async () => {
+      await host.invokeEditorFacade('startDemonstration')
+    },
+    quit: async () => {
+      await host.invokeEditorFacade('endDemonstration')
+    }
+  }
+}
+
 export function buildRootFacadeState(
   host: FacadeHost
 ): OfficeSDKRootFacadeState {
@@ -679,6 +706,7 @@ export function buildRootFacadeState(
         collaborator: collaboratorFacade,
         externalApp: externalAppFacade,
         version: versionFacade,
+        presentation: createDocumentPresentationFacade(host),
         selection: docsSelectionFacade,
         settings: host.createEditorFacadeModule<DocsSettingsFacade>(
           'settings',
@@ -702,6 +730,7 @@ export function buildRootFacadeState(
         mention: mentionFacade,
         content: contentFacade,
         version: versionFacade,
+        presentation: createSpreadsheetPresentationFacade(host),
         workbook: sheetWorkbookFacade,
         activeSheet: createSheetWorksheetFacade(host, { active: true }),
         charts: host.createEditorFacadeModule<SheetChartsFacade>('charts', {}),

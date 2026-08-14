@@ -10,7 +10,9 @@
 
 对象型能力（如 range / cell / slide / textRange）通过 value-based locator 在宿主侧重建本地 facade，不直接暴露 iframe 内部对象引用。
 
-根级 `sdk.presentation` 仅表示“演示模式能力”，只在幻灯片套件（presentation）下挂载；文档与表格套件不暴露演示 API，演示模式仅保留为编辑器内 headerBars 能力。
+根级 `sdk.presentation` 表示当前套件可用的演示模式能力：文档与表格提供 `start()` / `quit()`，幻灯片套件额外提供从当前页演示、远程演示、演讲者视图和状态监听。
+
+公开类型使用 `BasicPresentationFacade | PresentationFacade` 表达套件差异；调用幻灯片专属方法前应通过对应属性进行类型收窄。
 
 以下新增 API 均为 `PC only`。
 
@@ -29,6 +31,7 @@
 | docs         | `outline`                                            | `sdk.outline`（兼容 `sdk.TOCs`）                                                                  | receiver `outline.*`（兼容别名 `sdk.TOCs`）                             |
 | docs         | `sidebar`                                            | `sdk.sidebar`                                                                                     | receiver `sidebar.*`                                                    |
 | docs         | `tables`                                             | `sdk.tables`                                                                                      | receiver `tables.*`、`tables.item.*`、`tables.cell.*`、`tables.range.*` |
+| docs         | `presentation`                                       | `sdk.presentation.start / quit`                                                                   | receiver `presentation.start / quit`                                    |
 | docs         | `batchChanges`                                       | `sdk.batchChanges()`                                                                              | receiver `batchChanges` + `editorFacade.handleCallback`                 |
 | sheet        | `comments`                                           | `sdk.comments`                                                                                    | 旧根级 `comments`；receiver `comments.*`                                |
 | sheet        | `charts`                                             | `sdk.charts`                                                                                      | receiver `charts.*`                                                     |
@@ -37,6 +40,7 @@
 | sheet        | `batchChanges`                                       | `sdk.batchChanges()`                                                                              | receiver `batchChanges` + `editorFacade.handleCallback`                 |
 | sheet        | `print`                                              | `sdk.print()`                                                                                     | receiver `print`                                                        |
 | sheet        | `setFocus`                                           | `sdk.setFocus()`                                                                                  | receiver `setFocus`                                                     |
+| sheet        | `presentation`                                       | `sdk.presentation.start / quit`                                                                   | receiver `startDemonstration / endDemonstration`                        |
 | sheet        | 已承接补充                                           | `sdk.selections / sdk.history / sdk.locks / sdk.mention / sdk.content / sdk.export / sdk.version` | 旧根级 facade + receiver 对应 path                                      |
 | presentation | `ready`                                              | `sdk.ready()`                                                                                     | 旧 `sdk.ready()`；receiver `ready`                                      |
 | presentation | `slides / slides.slide`                              | `sdk.slides`                                                                                      | receiver `slides.*`、`slides.slide.*`、`slides.slide.shape.*`           |
@@ -61,7 +65,7 @@ const sdk = await connect(options)
 await sdk.title?.setTitle('Weekly Report')
 await sdk.comments?.show()
 await sdk.history?.show()
-// 仅幻灯片套件可用
+// 三套件均支持基础 start / quit
 await sdk.presentation?.start()
 ```
 
@@ -80,9 +84,9 @@ await sdk.getEditor().showHistory?.()
 await sdk.title?.setTitle('Weekly Report')
 await sdk.history?.show()
 
-// Document / Spreadsheet 的编辑器内演示继续使用旧入口，
-// 不映射为根级 sdk.presentation facade。
-await sdk.getEditor().startDemonstration?.()
+// Document / Spreadsheet 的基础演示能力也映射为根级 facade。
+await sdk.presentation?.start()
+await sdk.presentation?.quit()
 ```
 
 ## 方法列表
@@ -104,8 +108,9 @@ await sdk.getEditor().startDemonstration?.()
 | `sdk.mention?.locateCellByGuid(guid, notificationType?)` | 按通知定位单元格                 | `PC only` |
 | `sdk.content?.setContent(content)`                       | 设置内容                         | `PC only` |
 | `sdk.version?.createRevision(options?)`                  | 创建版本                         | `PC only` |
-| `sdk.presentation?.start(index?)`                        | 启动演示（仅幻灯片套件）         | `PC only` |
-| `sdk.presentation?.quit()`                               | 退出演示（仅幻灯片套件）         | `PC only` |
+| `sdk.presentation?.start()`                              | 启动演示（文档、表格、幻灯片）   | `PC only` |
+| `sdk.presentation?.quit()`                               | 退出演示（文档、表格、幻灯片）   | `PC only` |
+| `sdk.presentation?.start(index?)`                        | 从指定页启动演示（仅幻灯片套件） | `PC only` |
 | `sdk.presentation?.startFromCurrent()`                   | 从当前页开始演示（仅幻灯片套件） | `PC only` |
 | `sdk.presentation?.startRemoteLive()`                    | 启动远程演示（仅幻灯片套件）     | `PC only` |
 | `sdk.presentation?.startSpeakerView()`                   | 启动演讲者视图（仅幻灯片套件）   | `PC only` |
@@ -146,6 +151,8 @@ await sdk.getEditor().startDemonstration?.()
 - `sdk.sidebar?.*`
 - `sdk.tables?.*`
 - `sdk.settings?.*`
+- `sdk.presentation?.start()`
+- `sdk.presentation?.quit()`
 - `sdk.batchChanges?.(callback)`
 
 ### spread-sheet
@@ -165,6 +172,8 @@ await sdk.getEditor().startDemonstration?.()
 - `sdk.mention?.locateCellByGuid(guid, notificationType?)`
 - `sdk.content?.setContent(content)`
 - `sdk.version?.createRevision(options?)`
+- `sdk.presentation?.start()`
+- `sdk.presentation?.quit()`
 - `sdk.workbook?.*`
 - `sdk.activeSheet?.*`
 - `sdk.charts?.*`
