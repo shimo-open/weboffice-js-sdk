@@ -145,6 +145,7 @@ sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 sdk.presentation?.start(index?: number): Promise<void>
 sdk.presentation?.quit(): Promise<void>
 sdk.presentation?.startFromCurrent(): Promise<void>
+sdk.presentation?.startRemoteLive(): Promise<void>
 sdk.presentation?.startSpeakerView(): Promise<void>
 ```
 
@@ -916,6 +917,5 @@ interface EditorTextFormat {
 ## 注意事项
 
 - 根级 `sdk.presentation` facade 仅在幻灯片套件下挂载。
-- `sdk.presentation?.startRemoteLive()` 当前仅存在于 facade 类型空间，iframe receiver 尚未承接，调用前需等待运行时支持。
 
 ---

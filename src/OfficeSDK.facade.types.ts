@@ -774,7 +774,6 @@ export interface PresentationFacade {
   start: (index?: number) => Promise<void>
   quit: () => Promise<void>
   startFromCurrent: () => Promise<void>
-  /** 当前 iframe receiver 尚未承接，调用会由运行时返回不支持错误。 */
   startRemoteLive: () => Promise<void>
   startSpeakerView: () => Promise<void>
   addChangeListener: (listener: (payload: unknown) => void) => () => void

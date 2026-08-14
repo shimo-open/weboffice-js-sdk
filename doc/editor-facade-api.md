@@ -107,6 +107,7 @@ await sdk.getEditor().startDemonstration?.()
 | `sdk.presentation?.start(index?)`                        | 启动演示（仅幻灯片套件）         | `PC only` |
 | `sdk.presentation?.quit()`                               | 退出演示（仅幻灯片套件）         | `PC only` |
 | `sdk.presentation?.startFromCurrent()`                   | 从当前页开始演示（仅幻灯片套件） | `PC only` |
+| `sdk.presentation?.startRemoteLive()`                    | 启动远程演示（仅幻灯片套件）     | `PC only` |
 | `sdk.presentation?.startSpeakerView()`                   | 启动演讲者视图（仅幻灯片套件）   | `PC only` |
 | `sdk.selection?.*`                                       | docs / presentation 选区能力     | `PC only` |
 | `sdk.search?.*`                                          | docs 搜索与替换                  | `PC only` |
@@ -185,6 +186,7 @@ await sdk.getEditor().startDemonstration?.()
 - `sdk.presentation?.start(index?)`
 - `sdk.presentation?.quit()`
 - `sdk.presentation?.startFromCurrent()`
+- `sdk.presentation?.startRemoteLive()`
 - `sdk.presentation?.startSpeakerView()`
 - `sdk.slides?.*`
 - `sdk.selection?.*`
@@ -194,7 +196,3 @@ await sdk.getEditor().startDemonstration?.()
 - `sdk.batchChanges?.(callback)`
 - `sdk.print?.()`
 - `sdk.export?.(type)`
-
-未支持：
-
-- `sdk.presentation?.startRemoteLive()`
