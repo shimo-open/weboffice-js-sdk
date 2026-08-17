@@ -14,7 +14,8 @@
 | [sdk.mention.locateCellByGuid](#sdkmentionlocatecellbyguidguid-notificationtype) | 按通知定位单元格（PC only，`co-1.8+`）     |
 | [sdk.content.setContent](#sdkcontentsetcontentcontent)                           | 设置内容（PC only，`co-1.8+`）             |
 | [sdk.version.createRevision](#sdkversioncreaterevisionoptions)                   | 创建版本（PC only，`co-1.8+`）             |
-| [sdk.presentation](#sdkpresentation)                                             | 演示模式能力（PC only，`co-1.8+`）         |
+| [sdk.presentation.start](#sdkpresentationstart)                                  | 启动演示（PC only，`co-1.8+`）             |
+| [sdk.presentation.quit](#sdkpresentationquit)                                    | 退出演示（PC only，`co-1.8+`）             |
 | [sdk.workbook](#sdkworkbook)                                                     | 工作簿能力（PC only，`co-1.8+`）           |
 | [sdk.activeSheet](#sdkactivesheet)                                               | 当前工作表能力（PC only，`co-1.8+`）       |
 | [range: SheetRangeFacade](#range-sheetrangefacade)                               | 工作表范围对象能力（PC only，`co-1.8+`）   |
@@ -32,6 +33,7 @@
 const sdk = await connect(options)
 
 await sdk.history?.show()
+await sdk.presentation?.start()
 const sheets = await sdk.workbook?.getWorksheets()
 const activeSheet = await sdk.workbook?.getActiveWorksheet()
 await activeSheet?.locateCell(1, 1)
@@ -68,8 +70,8 @@ await sdk.history?.show()
 | `sdk.getEditor().locateCellByGuid(guid, notificationType?)` | 按通知定位单元格 | `sdk.mention?.locateCellByGuid(guid, notificationType?)` |
 | `sdk.getEditor().setContent(content)`                       | 设置内容         | `sdk.content?.setContent(content)`                       |
 | `sdk.getEditor().createRevision(options?)`                  | 创建版本         | `sdk.version?.createRevision(options?)`                  |
-| `sdk.getEditor().startDemonstration()`                      | 启动演示         | `sdk.presentation?.start(index?)`                        |
-| `sdk.getEditor().endDemonstration()`                        | 退出演示         | `sdk.presentation?.quit()`                               |
+| `sdk.getEditor().startDemonstration()`                      | 启动编辑器演示   | `sdk.presentation?.start()`                              |
+| `sdk.getEditor().endDemonstration()`                        | 退出编辑器演示   | `sdk.presentation?.quit()`                               |
 
 ### 新增 API 方法
 
@@ -199,16 +201,29 @@ sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 
 ---
 
-### sdk.presentation
+### sdk.presentation.start()
 
 #### 说明
 
-表格演示模式能力。
+启动表格演示模式。
 
 #### 类型定义
 
 ```typescript
-sdk.presentation?.start(index?: number): Promise<void>
+sdk.presentation?.start(): Promise<void>
+```
+
+---
+
+### sdk.presentation.quit()
+
+#### 说明
+
+退出表格演示模式。
+
+#### 类型定义
+
+```typescript
 sdk.presentation?.quit(): Promise<void>
 ```
 
@@ -313,6 +328,8 @@ sdk.activeSheet?.rename(name: string): Promise<void>
 sdk.activeSheet?.setVisible(visible: boolean): Promise<void>
 ```
 
+`sdk.activeSheet.getBounding(range)` 是兼容入口，已废弃。新代码请先通过 `await sdk.activeSheet.getRange(range)` 获取 `SheetRangeFacade`，再调用 `await range?.getBounding()`。
+
 #### 相关类型
 
 - [SheetSelection](#sheetselection)
@@ -331,26 +348,38 @@ sdk.activeSheet?.setVisible(visible: boolean): Promise<void>
 
 通过 `const range = await sdk.activeSheet?.getRange(value)` 获取 `range: SheetRangeFacade`，再调用其上的实例 API。
 
+```typescript
+const range = await sdk.activeSheet?.getRange({
+  type: 'cells',
+  row: 0,
+  column: 0,
+  rowCount: 2,
+  columnCount: 2
+})
+const bounding = await range?.getBounding()
+```
+
 #### API 一览表
 
-| API                                                                           | 说明         |
-| ----------------------------------------------------------------------------- | ------------ |
-| `range.getText(format?: 'plain' \| 'matrix'): Promise<string \| string[][]>`  | 获取文本     |
-| `range.setText(text: SheetRangeText): Promise<void>`                          | 设置文本     |
-| `range.getHtml(): Promise<string>`                                            | 获取 HTML    |
-| `range.setHtml(html: string): Promise<void>`                                  | 设置 HTML    |
-| `range.getValue(): Promise<(SheetCellValue \| null)[][]>`                     | 获取值       |
-| `range.setValue(values: (SheetWritableCellValue \| null)[][]): Promise<void>` | 设置值       |
-| `range.getData(): Promise<SheetCellData[][]>`                                 | 获取数据     |
-| `range.getFormula(): Promise<(string \| null)[][]>`                           | 获取公式     |
-| `range.setFormula(formula: (string \| null)[][]): Promise<void>`              | 设置公式     |
-| `range.setData(data: SheetWritableCellData[][]): Promise<void>`               | 设置数据     |
-| `range.setSpan(): Promise<void>`                                              | 合并单元格   |
-| `range.removeSpan(): Promise<void>`                                           | 取消合并     |
-| `range.getSpans(): Promise<SheetCellRange[] \| null>`                         | 获取合并区域 |
-| `range.clearContent(): Promise<void>`                                         | 清除内容     |
-| `range.clearStyle(): Promise<void>`                                           | 清除样式     |
-| `range.clearAll(): Promise<void>`                                             | 清除全部     |
+| API                                                                                                  | 说明         |
+| ---------------------------------------------------------------------------------------------------- | ------------ |
+| `range.getBounding(): Promise<{ left: number; top: number; width: number; height: number } \| null>` | 获取范围位置 |
+| `range.getText(format?: 'plain' \| 'matrix'): Promise<string \| string[][]>`                         | 获取文本     |
+| `range.setText(text: SheetRangeText): Promise<void>`                                                 | 设置文本     |
+| `range.getHtml(): Promise<string>`                                                                   | 获取 HTML    |
+| `range.setHtml(html: string): Promise<void>`                                                         | 设置 HTML    |
+| `range.getValue(): Promise<(SheetCellValue \| null)[][]>`                                            | 获取值       |
+| `range.setValue(values: (SheetWritableCellValue \| null)[][]): Promise<void>`                        | 设置值       |
+| `range.getData(): Promise<SheetCellData[][]>`                                                        | 获取数据     |
+| `range.getFormula(): Promise<(string \| null)[][]>`                                                  | 获取公式     |
+| `range.setFormula(formula: (string \| null)[][]): Promise<void>`                                     | 设置公式     |
+| `range.setData(data: SheetWritableCellData[][]): Promise<void>`                                      | 设置数据     |
+| `range.setSpan(): Promise<void>`                                                                     | 合并单元格   |
+| `range.removeSpan(): Promise<void>`                                                                  | 取消合并     |
+| `range.getSpans(): Promise<SheetCellRange[] \| null>`                                                | 获取合并区域 |
+| `range.clearContent(): Promise<void>`                                                                | 清除内容     |
+| `range.clearStyle(): Promise<void>`                                                                  | 清除样式     |
+| `range.clearAll(): Promise<void>`                                                                    | 清除全部     |
 
 #### 逐条类型定义
 
@@ -789,6 +818,12 @@ interface SheetRangeFacade {
   column: number
   rowCount: number
   columnCount: number
+  getBounding(): Promise<{
+    left: number
+    top: number
+    width: number
+    height: number
+  } | null>
 }
 ```
 
@@ -814,10 +849,13 @@ interface SheetCellFacade {
 
 ```typescript
 interface SheetSelection {
-  getRange(value?: SheetRangeValue): SheetRangeFacade | null
+  id: string
+  getRange(value?: SheetRangeValue): Promise<SheetRangeFacade | null>
   setRange(value: SheetRangeValue | null): Promise<void>
 }
 ```
+
+`id` 是当前 iframe runtime 内稳定的选区标识，可用于区分同一次 `getSelections()` 返回的对象；iframe 刷新、重连或重新获取选区后不应复用旧 `id`。
 
 ### SheetRangeValue
 
@@ -962,5 +1000,11 @@ interface AddChartFromSelectionResult {
   chartType: string
 }
 ```
+
+## 注意事项
+
+- 表格套件的根级 `sdk.presentation` 仅支持 `start()` 和 `quit()`。
+- `startFromCurrent()`、`startRemoteLive()`、`startSpeakerView()` 和 `addChangeListener()` 仅在幻灯片套件提供。
+- `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口继续兼容。
 
 ---

@@ -85,8 +85,8 @@ import type {
   HistoryFacade,
   LocksFacade,
   MentionFacade,
+  OfficeSDKPresentationFacade,
   PresentationEventSubscriptionFacade,
-  PresentationFacade,
   PresentationSelectionFacade,
   PresentationSlidesFacade,
   PresentationTextFacade,
@@ -148,7 +148,12 @@ const PRELOAD_MESSAGE_TYPE = {
   DONE: 'SDK_PRELOAD_DONE',
   ERROR: 'SDK_PRELOAD_ERROR'
 } as const
-const PROMISE_LIKE_PROXY_PROPS = new Set(['then', 'catch', 'finally'])
+const FACADE_PROXY_SKIPPED_PROPS = new Set([
+  'then',
+  'catch',
+  'finally',
+  'toJSON'
+])
 
 type EditorFacadeCallback = (...args: unknown[]) => unknown | Promise<unknown>
 
@@ -188,7 +193,7 @@ function isSlashMenuEntry(
 }
 
 function shouldSkipFacadeProxyProp(prop: string): boolean {
-  return PROMISE_LIKE_PROXY_PROPS.has(prop)
+  return FACADE_PROXY_SKIPPED_PROPS.has(prop)
 }
 
 export const MessageEvent = InvokeMethod
@@ -271,8 +276,9 @@ export class OfficeSDK extends TinyEmitter {
 
   /**
    * 当前套件支持的演示能力。
+   * 文档与表格支持 start / quit，幻灯片套件额外支持完整演示能力。
    */
-  presentation?: PresentationFacade
+  presentation?: OfficeSDKPresentationFacade
 
   /**
    * 当前套件支持的选区能力。

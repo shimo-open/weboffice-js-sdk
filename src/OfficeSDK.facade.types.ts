@@ -262,7 +262,9 @@ export interface ClipboardPasteParams {
 export type SheetAppendDataAxis = 'row' | 'column'
 
 export interface SheetSelection {
-  getRange: (value?: SheetRangeValue) => SheetRangeFacade | null
+  /** 当前 iframe runtime 内稳定的选区标识。 */
+  id: string
+  getRange: (value?: SheetRangeValue) => Promise<SheetRangeFacade | null>
   setRange: (value: SheetRangeValue | null) => Promise<void>
 }
 
@@ -644,10 +646,10 @@ export interface PresentationShapeBase {
   id: string
   name: string
   type: PresentationShapeType
-  setFill: (fill: PresentationShapeFill) => void
-  setLine: (line: PresentationShapeLine) => void
-  setLayout: (layout: PresentationShapeLayout) => void
-  remove: () => void
+  setFill: (fill: PresentationShapeFill) => Promise<void>
+  setLine: (line: PresentationShapeLine) => Promise<void>
+  setLayout: (layout: PresentationShapeLayout) => Promise<void>
+  remove: () => Promise<void>
 }
 
 export type PresentationTextShapeType = Exclude<
@@ -658,9 +660,9 @@ export type PresentationTextShapeType = Exclude<
 export interface PresentationTextShape extends PresentationShapeBase {
   type: PresentationTextShapeType
   textContent?: string
-  setContent: (content: PresentationShapeContent) => void
-  appendText: (text: string) => void
-  appendParagraphs: (paragraphs: PresentationParagraph[]) => void
+  setContent: (content: PresentationShapeContent) => Promise<void>
+  appendText: (text: string) => Promise<void>
+  appendParagraphs: (paragraphs: PresentationParagraph[]) => Promise<void>
 }
 
 export type PresentationShape = PresentationShapeBase | PresentationTextShape
@@ -675,8 +677,8 @@ export type PresentationParagraphLineSpacing =
   | 3.0
 
 export interface PresentationTableCell {
-  setStyle: (style: PresentationTableCellStyle) => void
-  clearStyle: () => void
+  setStyle: (style: PresentationTableCellStyle) => Promise<void>
+  clearStyle: () => Promise<void>
 }
 
 export type PresentationTableCellStyle = PresentationTextStyle &
@@ -690,34 +692,39 @@ export interface PresentationTableSelection {
 }
 
 export interface PresentationTableRange {
-  setStyle: (style: PresentationTableCellStyle) => void
-  clearStyle: () => void
-  setSpan: () => void
-  removeSpan: () => void
+  setStyle: (style: PresentationTableCellStyle) => Promise<void>
+  clearStyle: () => Promise<void>
+  setSpan: () => Promise<void>
+  removeSpan: () => Promise<void>
 }
 
 export interface PresentationTableItem {
   id: string
   rowCount: number
   columnCount: number
-  remove: () => void
+  remove: () => Promise<void>
   insertRows: (
     index: number,
     count: number,
     placement?: 'before' | 'after'
-  ) => void
+  ) => Promise<void>
   insertColumns: (
     index: number,
     count: number,
     placement?: 'before' | 'after'
-  ) => void
-  deleteRows: (index: number, count: number) => void
-  deleteColumns: (index: number, count: number) => void
-  setRowHeight: (index: number, height: number) => void
-  setColumnWidth: (index: number, width: number) => void
-  getCell: (row: number, column: number) => PresentationTableCell | null
-  getRange: (range: PresentationTableSelection) => PresentationTableRange | null
-  setDirection: (direction: 'ltr' | 'rtl') => void
+  ) => Promise<void>
+  deleteRows: (index: number, count: number) => Promise<void>
+  deleteColumns: (index: number, count: number) => Promise<void>
+  setRowHeight: (index: number, height: number) => Promise<void>
+  setColumnWidth: (index: number, width: number) => Promise<void>
+  getCell: (
+    row: number,
+    column: number
+  ) => Promise<PresentationTableCell | null>
+  getRange: (
+    range: PresentationTableSelection
+  ) => Promise<PresentationTableRange | null>
+  setDirection: (direction: 'ltr' | 'rtl') => Promise<void>
 }
 
 export interface PresentationTableOptions {
@@ -770,14 +777,22 @@ export interface VersionFacade {
   ) => Promise<undefined | null | DocumentErrorMessage>
 }
 
-export interface PresentationFacade {
-  start: (index?: number) => Promise<void>
+export interface BasicPresentationFacade {
+  start: () => Promise<void>
   quit: () => Promise<void>
+}
+
+export interface PresentationFacade extends BasicPresentationFacade {
+  start: (index?: number) => Promise<void>
   startFromCurrent: () => Promise<void>
   startRemoteLive: () => Promise<void>
   startSpeakerView: () => Promise<void>
   addChangeListener: (listener: (payload: unknown) => void) => () => void
 }
+
+export type OfficeSDKPresentationFacade =
+  | BasicPresentationFacade
+  | PresentationFacade
 
 export interface DocsRangeFacade {
   start: number
@@ -922,6 +937,12 @@ export interface SheetRangeFacade {
   column: number
   rowCount: number
   columnCount: number
+  getBounding: () => Promise<{
+    left: number
+    top: number
+    width: number
+    height: number
+  } | null>
   getText: (format?: 'plain' | 'matrix') => Promise<string | string[][]>
   setText: (text: SheetRangeText) => Promise<void>
   getHtml: () => Promise<string>
@@ -974,6 +995,7 @@ export interface SheetWorksheetFacade {
       ranges: SheetRangeValue[] | null
     }) => void
   ) => () => void
+  /** @deprecated 先 await worksheet.getRange(range)，再调用 range?.getBounding()。 */
   getBounding: (range: SheetRangeValue) => Promise<{
     left: number
     top: number
@@ -1176,7 +1198,7 @@ export interface OfficeSDKRootFacadeState {
   mention?: MentionFacade
   content?: ContentFacade
   version?: VersionFacade
-  presentation?: PresentationFacade
+  presentation?: OfficeSDKPresentationFacade
   selection?: DocsSelectionFacade | PresentationSelectionFacade
   search?: DocsSearchFacade
   outline?: DocsOutlineFacade
