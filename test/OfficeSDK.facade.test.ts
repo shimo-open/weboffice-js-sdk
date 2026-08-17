@@ -142,6 +142,50 @@ void test('wraps SheetSelection locators and preserves optional arguments', asyn
   assert.equal(calls[2].args[1], null)
 })
 
+void test('routes SheetRange getBounding through its range locator', async () => {
+  const { host, responses, calls } = createHost(FileType.Spreadsheet)
+  responses.set('sheet.worksheet.getRange', {
+    sheetId: 'sheet-1',
+    row: 1,
+    column: 2,
+    rowCount: 3,
+    columnCount: 4
+  })
+  responses.set('sheet.range.getBounding', {
+    left: 10,
+    top: 20,
+    width: 300,
+    height: 120
+  })
+
+  const facade = buildRootFacadeState(host)
+  const range = await facade.activeSheet?.getRange({
+    type: 'cells',
+    row: 1,
+    column: 2,
+    rowCount: 3,
+    columnCount: 4
+  })
+  const bounding = await range?.getBounding()
+
+  assert.deepEqual(bounding, {
+    left: 10,
+    top: 20,
+    width: 300,
+    height: 120
+  })
+  assert.equal(calls.at(-1)?.method, 'sheet.range.getBounding')
+  assert.deepEqual(calls.at(-1)?.args, [
+    {
+      sheetId: 'sheet-1',
+      row: 1,
+      column: 2,
+      rowCount: 3,
+      columnCount: 4
+    }
+  ])
+})
+
 void test('wraps Presentation Table, Cell, and Range locators', async () => {
   const { host, responses, calls } = createHost(FileType.Presentation)
   responses.set('slides.getCurrentSlide', { slideId: 'slide-1' })

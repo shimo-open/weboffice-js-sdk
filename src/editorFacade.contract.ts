@@ -220,6 +220,17 @@ export type EditorFacadeContractAssertions = [
     >
   >,
   Assert<
+    IsEqual<
+      SheetRangeFacade['getBounding'],
+      () => Promise<{
+        left: number
+        top: number
+        width: number
+        height: number
+      } | null>
+    >
+  >,
+  Assert<
     IsAssignable<
       NonNullable<OfficeSDK['selections']>['getAll'],
       () => Promise<SheetRangeValue[]>

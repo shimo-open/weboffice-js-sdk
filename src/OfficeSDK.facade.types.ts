@@ -937,6 +937,12 @@ export interface SheetRangeFacade {
   column: number
   rowCount: number
   columnCount: number
+  getBounding: () => Promise<{
+    left: number
+    top: number
+    width: number
+    height: number
+  } | null>
   getText: (format?: 'plain' | 'matrix') => Promise<string | string[][]>
   setText: (text: SheetRangeText) => Promise<void>
   getHtml: () => Promise<string>
@@ -989,6 +995,7 @@ export interface SheetWorksheetFacade {
       ranges: SheetRangeValue[] | null
     }) => void
   ) => () => void
+  /** @deprecated 先 await worksheet.getRange(range)，再调用 range?.getBounding()。 */
   getBounding: (range: SheetRangeValue) => Promise<{
     left: number
     top: number

@@ -328,6 +328,8 @@ sdk.activeSheet?.rename(name: string): Promise<void>
 sdk.activeSheet?.setVisible(visible: boolean): Promise<void>
 ```
 
+`sdk.activeSheet.getBounding(range)` 是兼容入口，已废弃。新代码请先通过 `await sdk.activeSheet.getRange(range)` 获取 `SheetRangeFacade`，再调用 `await range?.getBounding()`。
+
 #### 相关类型
 
 - [SheetSelection](#sheetselection)
@@ -346,26 +348,38 @@ sdk.activeSheet?.setVisible(visible: boolean): Promise<void>
 
 通过 `const range = await sdk.activeSheet?.getRange(value)` 获取 `range: SheetRangeFacade`，再调用其上的实例 API。
 
+```typescript
+const range = await sdk.activeSheet?.getRange({
+  type: 'cells',
+  row: 0,
+  column: 0,
+  rowCount: 2,
+  columnCount: 2
+})
+const bounding = await range?.getBounding()
+```
+
 #### API 一览表
 
-| API                                                                           | 说明         |
-| ----------------------------------------------------------------------------- | ------------ |
-| `range.getText(format?: 'plain' \| 'matrix'): Promise<string \| string[][]>`  | 获取文本     |
-| `range.setText(text: SheetRangeText): Promise<void>`                          | 设置文本     |
-| `range.getHtml(): Promise<string>`                                            | 获取 HTML    |
-| `range.setHtml(html: string): Promise<void>`                                  | 设置 HTML    |
-| `range.getValue(): Promise<(SheetCellValue \| null)[][]>`                     | 获取值       |
-| `range.setValue(values: (SheetWritableCellValue \| null)[][]): Promise<void>` | 设置值       |
-| `range.getData(): Promise<SheetCellData[][]>`                                 | 获取数据     |
-| `range.getFormula(): Promise<(string \| null)[][]>`                           | 获取公式     |
-| `range.setFormula(formula: (string \| null)[][]): Promise<void>`              | 设置公式     |
-| `range.setData(data: SheetWritableCellData[][]): Promise<void>`               | 设置数据     |
-| `range.setSpan(): Promise<void>`                                              | 合并单元格   |
-| `range.removeSpan(): Promise<void>`                                           | 取消合并     |
-| `range.getSpans(): Promise<SheetCellRange[] \| null>`                         | 获取合并区域 |
-| `range.clearContent(): Promise<void>`                                         | 清除内容     |
-| `range.clearStyle(): Promise<void>`                                           | 清除样式     |
-| `range.clearAll(): Promise<void>`                                             | 清除全部     |
+| API                                                                                                  | 说明         |
+| ---------------------------------------------------------------------------------------------------- | ------------ |
+| `range.getBounding(): Promise<{ left: number; top: number; width: number; height: number } \| null>` | 获取范围位置 |
+| `range.getText(format?: 'plain' \| 'matrix'): Promise<string \| string[][]>`                         | 获取文本     |
+| `range.setText(text: SheetRangeText): Promise<void>`                                                 | 设置文本     |
+| `range.getHtml(): Promise<string>`                                                                   | 获取 HTML    |
+| `range.setHtml(html: string): Promise<void>`                                                         | 设置 HTML    |
+| `range.getValue(): Promise<(SheetCellValue \| null)[][]>`                                            | 获取值       |
+| `range.setValue(values: (SheetWritableCellValue \| null)[][]): Promise<void>`                        | 设置值       |
+| `range.getData(): Promise<SheetCellData[][]>`                                                        | 获取数据     |
+| `range.getFormula(): Promise<(string \| null)[][]>`                                                  | 获取公式     |
+| `range.setFormula(formula: (string \| null)[][]): Promise<void>`                                     | 设置公式     |
+| `range.setData(data: SheetWritableCellData[][]): Promise<void>`                                      | 设置数据     |
+| `range.setSpan(): Promise<void>`                                                                     | 合并单元格   |
+| `range.removeSpan(): Promise<void>`                                                                  | 取消合并     |
+| `range.getSpans(): Promise<SheetCellRange[] \| null>`                                                | 获取合并区域 |
+| `range.clearContent(): Promise<void>`                                                                | 清除内容     |
+| `range.clearStyle(): Promise<void>`                                                                  | 清除样式     |
+| `range.clearAll(): Promise<void>`                                                                    | 清除全部     |
 
 #### 逐条类型定义
 
@@ -804,6 +818,12 @@ interface SheetRangeFacade {
   column: number
   rowCount: number
   columnCount: number
+  getBounding(): Promise<{
+    left: number
+    top: number
+    width: number
+    height: number
+  } | null>
 }
 ```
 
