@@ -1,6 +1,50 @@
 import { OfficeSDK, OfficeSDKOptions } from './OfficeSDK'
+import {
+  validateConnectV2Options,
+  type ConnectV2FileType
+} from './types/ConnectV2'
+
+export {
+  CONNECT_V2_FILE_TYPES,
+  isConnectV2FileType,
+  isConnectV2Mode,
+  validateConnectV2Options
+} from './types/ConnectV2'
+export type { ConnectV2FileType } from './types/ConnectV2'
 
 export interface ConnectOptions extends OfficeSDKOptions {}
+
+export interface ConnectV2Options extends ConnectOptions {
+  /**
+   * V2 套件类型。当前用于 iframe 侧资源选择预留。
+   */
+  type: ConnectV2FileType
+
+  /**
+   * V2 打开模式。
+   */
+  mode: 'edit' | 'preview'
+}
+
+async function connectInternal(
+  options: ConnectOptions & { type?: ConnectV2FileType }
+): Promise<OfficeSDK> {
+  let sdk: OfficeSDK | undefined
+  try {
+    sdk = new OfficeSDK(options)
+    await sdk.init()
+    return sdk
+  } catch (e) {
+    if (options.type) {
+      sdk?.disconnect()
+    }
+    console.log('Failed to init OfficeSDK', {
+      error: e,
+      options
+    })
+    throw e
+  }
+}
 
 /**
  * 初始化 SDK，返回 Promise，当 ReadState 变为 Ready 或 Failed 时，Promise 将被 resolve。
@@ -9,15 +53,16 @@ export interface ConnectOptions extends OfficeSDKOptions {}
  * 比如受浏览器限制无法发出 postMessage() 时，Promise 将会一直 pending。
  */
 export async function connect(options: ConnectOptions): Promise<OfficeSDK> {
-  try {
-    const sdk = new OfficeSDK(options)
-    await sdk.init()
-    return sdk
-  } catch (e) {
-    console.log('Failed to init OfficeSDK', {
-      error: e,
-      options
-    })
-    throw e
-  }
+  return await connectInternal(options)
+}
+
+/**
+ * 初始化 V2 统一编辑 / 预览入口。
+ *
+ * V2 在运行时强制校验 type 和 mode，底层 iframe 初始化流程与旧 connect 共用。
+ */
+export async function connectV2(options: ConnectV2Options): Promise<OfficeSDK> {
+  validateConnectV2Options(options)
+
+  return await connectInternal(options)
 }
