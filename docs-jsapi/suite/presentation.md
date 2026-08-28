@@ -139,18 +139,26 @@ sdk.version?.createRevision(options?: { name?: string }): Promise<void>
 
 演示模式能力。
 
+`OfficeSDK.presentation` 按套件能力声明为基础 facade 与完整 facade 的联合类型。调用幻灯片专属方法前，可通过 `startFromCurrent` 属性进行类型收窄。
+
 #### 类型定义
 
 ```typescript
 sdk.presentation?.start(index?: number): Promise<void>
 sdk.presentation?.quit(): Promise<void>
 sdk.presentation?.startFromCurrent(): Promise<void>
+sdk.presentation?.startRemoteLive(): Promise<void>
 sdk.presentation?.startSpeakerView(): Promise<void>
 ```
 
-#### 说明补充
+```typescript
+const presentation = sdk.presentation
 
-- `sdk.presentation?.startRemoteLive()` 当前未在 `presentation` 套件承接
+if (presentation && 'startFromCurrent' in presentation) {
+  await presentation.start(0)
+  await presentation.startFromCurrent()
+}
+```
 
 ---
 
@@ -327,6 +335,10 @@ slide.insertAttachment(
 - [PresentationSlideFacade](#presentationslidefacade)
 - [PresentationShape](#presentationshape)
 - [PresentationTableItem](#presentationtableitem)
+- [PresentationTableCell](#presentationtablecell)
+- [PresentationTableRange](#presentationtablerange)
+- [PresentationTableSelection](#presentationtableselection)
+- [PresentationTableCellStyle](#presentationtablecellstyle)
 - [PresentationInsertShapeOptions](#presentationinsertshapeoptions)
 - [PresentationTextBoxOptions](#presentationtextboxoptions)
 - [PresentationTableOptions](#presentationtableoptions)
@@ -335,7 +347,8 @@ slide.insertAttachment(
 
 #### 说明补充
 
-- 上述 `slide` API 继续对外保留；`getTables` 和各类插入/写入接口需等待底层 runtime 承接后再复测。
+- `getTables()`、`insertTable()`、`insertShape()`、`insertTextBox()` 及其返回对象已经由 runtime receiver 承接。
+- `insertImage()`、`insertAudio()`、`insertVideo()`、`insertAttachment()` 涉及 File transport，本期不调整其通信协议，仍需结合目标环境验证。
 
 ---
 
@@ -677,18 +690,18 @@ interface PresentationShapeBase {
   id: string
   name: string
   type: string
-  setFill(fill: PresentationShapeFill): void
-  setLine(line: PresentationShapeLine): void
-  setLayout(layout: PresentationShapeLayout): void
-  remove(): void
+  setFill(fill: PresentationShapeFill): Promise<void>
+  setLine(line: PresentationShapeLine): Promise<void>
+  setLayout(layout: PresentationShapeLayout): Promise<void>
+  remove(): Promise<void>
 }
 
 interface PresentationTextShape extends PresentationShapeBase {
   type: PresentationTextShapeType
   textContent?: string
-  setContent(content: PresentationShapeContent): void
-  appendText(text: string): void
-  appendParagraphs(paragraphs: PresentationParagraph[]): void
+  setContent(content: PresentationShapeContent): Promise<void>
+  appendText(text: string): Promise<void>
+  appendParagraphs(paragraphs: PresentationParagraph[]): Promise<void>
 }
 ```
 
@@ -801,6 +814,24 @@ interface PresentationParagraph {
 }
 ```
 
+### PresentationParagraphStyle
+
+```typescript
+interface PresentationParagraphStyle {
+  align?: PresentationHorizontalAlign
+  vertical?: PresentationVerticalAlign
+  direction?: 'ltr' | 'rtl'
+  indent?: { left?: number; right?: number; firstLine?: number }
+  spacing?: {
+    line?: number
+    lineRule?: 'atLeast' | 'auto' | 'exact'
+    before?: number
+    after?: number
+  }
+  listType?: PresentationListType
+}
+```
+
 ### PresentationInsertShapeOptions
 
 ```typescript
@@ -837,7 +868,67 @@ interface PresentationTableItem {
   id: string
   rowCount: number
   columnCount: number
+  remove(): Promise<void>
+  insertRows(
+    index: number,
+    count: number,
+    placement?: 'before' | 'after'
+  ): Promise<void>
+  insertColumns(
+    index: number,
+    count: number,
+    placement?: 'before' | 'after'
+  ): Promise<void>
+  deleteRows(index: number, count: number): Promise<void>
+  deleteColumns(index: number, count: number): Promise<void>
+  setRowHeight(index: number, height: number): Promise<void>
+  setColumnWidth(index: number, width: number): Promise<void>
+  getCell(row: number, column: number): Promise<PresentationTableCell | null>
+  getRange(
+    range: PresentationTableSelection
+  ): Promise<PresentationTableRange | null>
+  setDirection(direction: 'ltr' | 'rtl'): Promise<void>
 }
+```
+
+`PresentationTableItem` 是固定表格标识视图。每次方法调用都会按 `slideId + tableId` 重新定位当前表格；`getCell()` 和 `getRange()` 会按调用时的最新行列数校验坐标。
+
+### PresentationTableCell
+
+```typescript
+interface PresentationTableCell {
+  setStyle(style: PresentationTableCellStyle): Promise<void>
+  clearStyle(): Promise<void>
+}
+```
+
+### PresentationTableRange
+
+```typescript
+interface PresentationTableRange {
+  setStyle(style: PresentationTableCellStyle): Promise<void>
+  clearStyle(): Promise<void>
+  setSpan(): Promise<void>
+  removeSpan(): Promise<void>
+}
+```
+
+### PresentationTableSelection
+
+```typescript
+interface PresentationTableSelection {
+  row: number
+  column: number
+  rowCount: number
+  columnCount: number
+}
+```
+
+### PresentationTableCellStyle
+
+```typescript
+type PresentationTableCellStyle = PresentationTextStyle &
+  PresentationParagraphStyle
 ```
 
 ### PresentationTableOptions
@@ -916,5 +1007,9 @@ interface EditorTextFormat {
   family: string
 }
 ```
+
+## 注意事项
+
+- 文档与表格套件的根级 `sdk.presentation` 仅提供 `start()` 和 `quit()`；本页其余演示方法仅在幻灯片套件提供。
 
 ---

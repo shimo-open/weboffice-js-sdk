@@ -1,6 +1,6 @@
 {
   "name": "weboffice-js-sdk",
-  "version": "2.0.5-beta.4",
+  "version": "2.0.5-beta.9",
   "description": "",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "preversion": "npm run docs && git add -A docs && git diff-index --quiet HEAD || git commit -m 'docs: update'",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsc -p tsconfig.test.json && node --test temp/test/test/OfficeSDK.facade.test.js",
     "build": "webpack",
     "lint": "eslint .",
     "format": "eslint --fix .&& prettier --write .",

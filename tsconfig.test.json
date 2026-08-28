@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": false,
+    "outDir": "./temp/test",
+    "rootDir": ".",
+    "sourceMap": false,
+    "target": "es2020"
+  },
+  "include": ["./src/**/*.ts", "./test/**/*.ts"]
+}

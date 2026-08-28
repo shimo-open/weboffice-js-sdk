@@ -3,6 +3,14 @@ module.exports = {
   parserOptions: {
     project: 'tsconfig.json'
   },
+  overrides: [
+    {
+      files: ['test/**/*.ts'],
+      parserOptions: {
+        project: 'tsconfig.test.json'
+      }
+    }
+  ],
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
