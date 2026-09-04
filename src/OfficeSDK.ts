@@ -75,6 +75,7 @@ import type {
   CommentsFacade,
   ContentFacade,
   DiscussionFacade,
+  DocsActiveDocumentFacade,
   DocsOutlineFacade,
   DocsSearchFacade,
   DocsSelectionFacade,
@@ -223,6 +224,9 @@ export class OfficeSDK extends TinyEmitter {
    * @deprecated - 用 `sdk.getEditor<T>()` 替代
    */
   spreadsheet?: Spreadsheet.Editor
+
+  /** 当前轻文档的标准化、强类型文档入口。 */
+  ActiveDocument?: DocsActiveDocumentFacade
 
   /**
    * 当前套件支持的标题能力。
@@ -1469,6 +1473,13 @@ export class OfficeSDK extends TinyEmitter {
     this.editorFacadeCallbacks.delete(callbackId)
   }
 
+  private reportEditorFacadeError(message: string, error: unknown) {
+    this.emit(
+      Event.Error,
+      error instanceof Error ? error : new Error(`${message}: ${String(error)}`)
+    )
+  }
+
   /**
    * 创建基于 method-path 的模块 facade。
    * 输入：模块前缀与少量自定义实现覆盖。
@@ -1562,7 +1573,8 @@ export class OfficeSDK extends TinyEmitter {
         registerEditorFacadeCallback:
           this.registerEditorFacadeCallback.bind(this),
         unregisterEditorFacadeCallback:
-          this.unregisterEditorFacadeCallback.bind(this)
+          this.unregisterEditorFacadeCallback.bind(this),
+        reportEditorFacadeError: this.reportEditorFacadeError.bind(this)
       })
     )
   }
@@ -1573,6 +1585,7 @@ export class OfficeSDK extends TinyEmitter {
    * 输出：将所有 facade 字段置空。
    */
   private clearRootFacade() {
+    this.ActiveDocument = undefined
     this.title = undefined
     this.history = undefined
     this.comments = undefined

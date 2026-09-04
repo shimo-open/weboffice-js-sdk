@@ -11,6 +11,13 @@ export * from 'weboffice-js-sdk-shared'
 
 export * from './connect'
 
+export type {
+  JSAPIAdapter,
+  JSAPIContract,
+  JSAPIContractCatalog,
+  JSAPITransport
+} from './jsapi'
+
 export * from './OfficeSDK'
 
 export type {

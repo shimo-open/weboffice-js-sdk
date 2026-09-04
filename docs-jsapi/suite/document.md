@@ -4,39 +4,44 @@
 
 ### 方法列表
 
-| 方法                                                                | 说明                                     |
-| ------------------------------------------------------------------- | ---------------------------------------- |
-| [sdk.title.addChangedListener](#sdktitleaddchangedlistenerlistener) | 监听标题变化（PC only，`co-1.8+`）       |
-| [sdk.title.setTitle](#sdktitlesettitletitle)                        | 设置标题（PC only，`co-1.8+`）           |
-| [sdk.history.show](#sdkhistoryshow)                                 | 显示历史（PC only，`co-1.8+`）           |
-| [sdk.history.hide](#sdkhistoryhide)                                 | 隐藏历史（PC only，`co-1.8+`）           |
-| [sdk.comments.show](#sdkcommentsshowtype)                           | 显示评论（PC only，`co-1.8+`）           |
-| [sdk.comments.hide](#sdkcommentshidetype)                           | 隐藏评论（PC only，`co-1.8+`）           |
-| [sdk.discussion.show](#sdkdiscussionshow)                           | 显示讨论（PC only，`co-1.8+`）           |
-| [sdk.discussion.hide](#sdkdiscussionhide)                           | 隐藏讨论（PC only，`co-1.8+`）           |
-| [sdk.version](#sdkversion)                                          | 版本能力（PC only，`co-1.8+`）           |
-| [sdk.presentation.start](#sdkpresentationstart)                     | 启动演示（PC only，`co-1.8+`）           |
-| [sdk.presentation.quit](#sdkpresentationquit)                       | 退出演示（PC only，`co-1.8+`）           |
-| [sdk.selection](#sdkselection)                                      | 选区能力（PC only，`co-1.8+`）           |
-| [range: DocsRangeFacade](#range-docsrangefacade)                    | 选区范围对象能力（PC only，`co-1.8+`）   |
-| [sdk.search](#sdksearch)                                            | 搜索与替换（PC only，`co-1.8+`）         |
-| [sdk.outline](#sdkoutline)                                          | 目录能力（PC only，`co-1.8+`）           |
-| [sdk.sidebar](#sdksidebar)                                          | 侧边栏能力（PC only，`co-1.8+`）         |
-| [sdk.collaborator.show](#sdkcollaboratorshow)                       | 显示编写者信息（PC only，`co-1.8+`）     |
-| [sdk.collaborator.hide](#sdkcollaboratorhide)                       | 隐藏编写者信息（PC only，`co-1.8+`）     |
-| [sdk.externalApp.insert](#sdkexternalappinserturl-params)           | 插入第三方应用（PC only，`co-1.8+`）     |
-| [sdk.tables](#sdktables)                                            | 表格集合能力（PC only，`co-1.8+`）       |
-| [table: DocsTableFacade](#table-docstablefacade)                    | 单个表格对象能力（PC only，`co-1.8+`）   |
-| [cell: DocsTableCellFacade](#cell-docstablecellfacade)              | 表格单元格对象能力（PC only，`co-1.8+`） |
-| [range: DocsTableRangeFacade](#range-docstablerangefacade)          | 表格范围对象能力（PC only，`co-1.8+`）   |
-| [sdk.settings](#sdksettings)                                        | 文档设置能力（PC only，`co-1.8+`）       |
-| [sdk.batchChanges](#sdkbatchchangescallback)                        | 批量变更（PC only，`co-1.8+`）           |
-| [sdk.print](#sdkprint)                                              | 打印（PC only，`co-1.8+`）               |
+| 方法                                                                | 说明                                       |
+| ------------------------------------------------------------------- | ------------------------------------------ |
+| [sdk.ActiveDocument](#sdkactivedocument)                            | 标准化强类型文档 API（PC only，`co-1.8+`） |
+| [sdk.title.addChangedListener](#sdktitleaddchangedlistenerlistener) | 监听标题变化（PC only，`co-1.8+`）         |
+| [sdk.title.setTitle](#sdktitlesettitletitle)                        | 设置标题（PC only，`co-1.8+`）             |
+| [sdk.history.show](#sdkhistoryshow)                                 | 显示历史（PC only，`co-1.8+`）             |
+| [sdk.history.hide](#sdkhistoryhide)                                 | 隐藏历史（PC only，`co-1.8+`）             |
+| [sdk.comments.show](#sdkcommentsshowtype)                           | 显示评论（PC only，`co-1.8+`）             |
+| [sdk.comments.hide](#sdkcommentshidetype)                           | 隐藏评论（PC only，`co-1.8+`）             |
+| [sdk.discussion.show](#sdkdiscussionshow)                           | 显示讨论（PC only，`co-1.8+`）             |
+| [sdk.discussion.hide](#sdkdiscussionhide)                           | 隐藏讨论（PC only，`co-1.8+`）             |
+| [sdk.version](#sdkversion)                                          | 版本能力（PC only，`co-1.8+`）             |
+| [sdk.presentation.start](#sdkpresentationstart)                     | 启动演示（PC only，`co-1.8+`）             |
+| [sdk.presentation.quit](#sdkpresentationquit)                       | 退出演示（PC only，`co-1.8+`）             |
+| [sdk.selection](#sdkselection)                                      | 选区能力（PC only，`co-1.8+`）             |
+| [range: DocsRangeFacade](#range-docsrangefacade)                    | 选区范围对象能力（PC only，`co-1.8+`）     |
+| [sdk.search](#sdksearch)                                            | 搜索与替换（PC only，`co-1.8+`）           |
+| [sdk.outline](#sdkoutline)                                          | 目录能力（PC only，`co-1.8+`）             |
+| [sdk.sidebar](#sdksidebar)                                          | 侧边栏能力（PC only，`co-1.8+`）           |
+| [sdk.collaborator.show](#sdkcollaboratorshow)                       | 显示编写者信息（PC only，`co-1.8+`）       |
+| [sdk.collaborator.hide](#sdkcollaboratorhide)                       | 隐藏编写者信息（PC only，`co-1.8+`）       |
+| [sdk.externalApp.insert](#sdkexternalappinserturl-params)           | 插入第三方应用（PC only，`co-1.8+`）       |
+| [sdk.tables](#sdktables)                                            | 表格集合能力（PC only，`co-1.8+`）         |
+| [table: DocsTableFacade](#table-docstablefacade)                    | 单个表格对象能力（PC only，`co-1.8+`）     |
+| [cell: DocsTableCellFacade](#cell-docstablecellfacade)              | 表格单元格对象能力（PC only，`co-1.8+`）   |
+| [range: DocsTableRangeFacade](#range-docstablerangefacade)          | 表格范围对象能力（PC only，`co-1.8+`）     |
+| [sdk.settings](#sdksettings)                                        | 文档设置能力（PC only，`co-1.8+`）         |
+| [sdk.batchChanges](#sdkbatchchangescallback)                        | 批量变更（PC only，`co-1.8+`）             |
+| [sdk.print](#sdkprint)                                              | 打印（PC only，`co-1.8+`）                 |
 
 ### API 调用方式
 
 ```typescript
 const sdk = await connect(options)
+
+const document = sdk.ActiveDocument?.Editor.Document
+const content = await document?.GetContent()
+await document?.Font.SetBold(true)
 
 await sdk.title?.setTitle('Weekly Report')
 await sdk.comments?.show('list')
@@ -55,6 +60,9 @@ await sdk.getEditor().setTitle?.('Weekly Report')
 
 // 新写法
 await sdk.title?.setTitle('Weekly Report')
+
+// 新增的标准化强类型入口，仅文档套件挂载
+await sdk.ActiveDocument?.Editor.Document.SetTitleContent('Weekly Report')
 ```
 
 ### 旧方法兼容
@@ -81,6 +89,83 @@ await sdk.title?.setTitle('Weekly Report')
 | `sdk.getEditor().showCollaborator()`              | 显示编写者信息 | `sdk.collaborator?.show()`              |
 | `sdk.getEditor().hideCollaborator()`              | 隐藏编写者信息 | `sdk.collaborator?.hide()`              |
 | `sdk.getEditor().insertExternalApp(url, params?)` | 插入第三方应用 | `sdk.externalApp?.insert(url, params?)` |
+
+### sdk.ActiveDocument
+
+#### 说明
+
+`ActiveDocument` 是仅文档套件挂载的同步 typed facade 对象；`Reference`、`Service`、`Sub` 和 `Env` 是其下与 `Editor` 同级的产品能力对象。
+
+本期标准化 API 按 `ActiveDocument.Editor`、`ActiveDocument.Reference`、`ActiveDocument.Service`、`ActiveDocument.Sub` 和 `ActiveDocument.Env` 组织。除事件注册返回同步 disposer 外，所有跨 iframe 方法都返回 `Promise`。
+
+#### 调用方式
+
+```typescript
+const sdk = await connect(options)
+const activeDocument = sdk.ActiveDocument
+
+if (!activeDocument) {
+  throw new Error('当前文件不支持标准化文档 API')
+}
+
+const editor = activeDocument.Editor
+const document = editor.Document
+
+const delta = await document.GetContent()
+console.log(delta.length, delta.stringify())
+
+await document.Font.SetBold(true)
+await document.Markdown.AppendMarkdown('\n新增内容')
+```
+
+#### 方法列表
+
+| 方法                                                              | 返回类型                           | 说明                                     |
+| ----------------------------------------------------------------- | ---------------------------------- | ---------------------------------------- |
+| `ActiveDocument.Editor.Document.GetContent()`                     | `Promise<DocsEditorDeltaSnapshot>` | 获取正文 Delta 快照                      |
+| `ActiveDocument.Editor.Document.GetTitleContent()`                | `Promise<string>`                  | 获取标题内容                             |
+| `ActiveDocument.Editor.Document.SetTitleContent(title)`           | `Promise<void>`                    | 设置标题内容                             |
+| `ActiveDocument.Editor.Document.Font.SetTextColor(color)`         | `Promise<boolean>`                 | 设置文字颜色                             |
+| `ActiveDocument.Editor.Document.Font.SetHighLightColor(color)`    | `Promise<boolean>`                 | 设置高亮颜色                             |
+| `ActiveDocument.Editor.Document.Font.SetBold(value?)`             | `Promise<boolean>`                 | 设置或切换粗体                           |
+| `ActiveDocument.Editor.Document.Font.SetItalic(value?)`           | `Promise<boolean>`                 | 设置或切换斜体                           |
+| `ActiveDocument.Editor.Document.Font.SetUnderline(value?)`        | `Promise<boolean>`                 | 设置或切换下划线                         |
+| `ActiveDocument.Editor.Document.Font.SetStrike(value?)`           | `Promise<boolean>`                 | 设置或切换删除线                         |
+| `ActiveDocument.Reference.CanIUse(scopes)`                        | `Promise<boolean>`                 | 查询一个或多个能力是否可用               |
+| `ActiveDocument.Editor.GetEditMode()`                             | `Promise<string>`                  | 获取编辑模式                             |
+| `ActiveDocument.Service.User.GetUserInfo()`                       | `Promise<unknown>`                 | 获取用户信息；返回结构以后续产品契约为准 |
+| `ActiveDocument.Service.Permission.GetDocumentPermission()`       | `Promise<DocsDocumentPermission>`  | 获取文档权限                             |
+| `ActiveDocument.Env.Language.GetLanguage()`                       | `Promise<string>`                  | 获取当前语言                             |
+| `ActiveDocument.Env.DocsMode.GetDocsMode()`                       | `Promise<string>`                  | 获取文档模式                             |
+| `ActiveDocument.Sub.OnDocumentChange(handler)`                    | `() => void`                       | 监听文档变化并返回取消函数               |
+| `ActiveDocument.Service.Collaboration.GetSaveStatus()`            | `Promise<unknown>`                 | 获取保存状态；返回结构以后续产品契约为准 |
+| `ActiveDocument.Editor.Document.Markdown.GetMarkdown()`           | `Promise<string>`                  | 获取 Markdown                            |
+| `ActiveDocument.Editor.Document.Markdown.AppendMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在文档末尾追加 Markdown                  |
+| `ActiveDocument.Editor.Document.Markdown.InsertMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在当前选区插入 Markdown                  |
+| `ActiveDocument.Editor.Document.Markdown.ValidateMarkdown(value)` | `Promise<boolean>`                 | 校验 Markdown 是否可转换                 |
+| `ActiveDocument.Editor.Document.Content.ReplaceSelection(value)`  | `Promise<boolean>`                 | 替换当前选区内容                         |
+| `ActiveDocument.Editor.Document.Content.ReplaceAllContent(value)` | `Promise<boolean>`                 | 替换全文内容                             |
+| `ActiveDocument.Service.Export.DownloadDocument(format)`          | `Promise<void>`                    | 下载文档                                 |
+
+#### 文档变化监听
+
+```typescript
+const dispose = sdk.ActiveDocument?.Sub.OnDocumentChange((delta) => {
+  console.log(delta.length, delta.serialized)
+})
+
+// 不再需要监听时取消；重复调用不会产生额外请求。
+dispose?.()
+```
+
+监听内部通过回调标识建立跨 iframe 通道。取消函数即使在注册完成前调用，也会在注册完成后释放远端订阅，并停止向业务 handler 派发后续事件。
+
+#### 相关类型
+
+- [DocsEditorDeltaSnapshot](#docseditor-delta-snapshot)
+- [DocsDocumentPermission](#docsdocumentpermission)
+- [DocsDownloadDocumentType](#docsdownloaddocumenttype)
+- [DocsRangeValue](#docsrangevalue)
 
 ### 新增 API 方法
 
@@ -1041,6 +1126,34 @@ sdk.print?.(): Promise<void>
 
 ## 类型定义
 
+### DocsEditorDeltaSnapshot
+
+```typescript
+interface DocsEditorDeltaSnapshot {
+  length: number
+  serialized: string
+  stringify(): string
+}
+```
+
+`stringify()` 返回 `serialized`。该对象是跨 iframe 重建的可序列化快照，不提供编辑器运行时 Delta 的组合或转换方法。
+
+### DocsDocumentPermission
+
+```typescript
+interface DocsDocumentPermission {
+  read: boolean
+  write: boolean
+  comment: boolean
+}
+```
+
+### DocsDownloadDocumentType
+
+```typescript
+type DocsDownloadDocumentType = 'pdf' | 'word' | 'image' | 'md'
+```
+
 ### DocumentErrorMessage
 
 ```typescript
@@ -1300,6 +1413,10 @@ interface DocsDefaultStyle {
 
 ## 注意事项
 
+- `sdk.ActiveDocument` 只在文档套件挂载；`Reference`、`Service`、`Sub` 和 `Env` 位于 `sdk.ActiveDocument` 下，使用前应处理 `undefined`。
+- `DocsEditorDeltaSnapshot` 只保证 `length`、`serialized` 和 `stringify()`，不包含编辑器运行时对象方法。
+- `Sub.OnDocumentChange()` 的取消函数是同步调用；注册和释放过程中的异步错误通过 SDK 的 `error` 事件报告。
+- `sdk.getEditor()` 与既有根级 facade 继续保留，用于历史业务兼容。
 - 文档套件的根级 `sdk.presentation` 仅支持 `start()` 和 `quit()`。
 - `startFromCurrent()`、`startRemoteLive()`、`startSpeakerView()` 和 `addChangeListener()` 仅在幻灯片套件提供。
 - `sdk.getEditor().startDemonstration()` 和 `sdk.getEditor().endDemonstration()` 旧入口继续兼容。

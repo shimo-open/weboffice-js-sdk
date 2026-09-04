@@ -10,6 +10,11 @@ type InvokeResponse =
 function createHost(fileType: FileType) {
   const calls: Array<{ method: string; args: unknown[] }> = []
   const responses = new Map<string, InvokeResponse>()
+  const callbacks = new Map<
+    string,
+    (...args: unknown[]) => unknown | Promise<unknown>
+  >()
+  const errors: Array<{ message: string; error: unknown }> = []
   const invokeEditorFacade = async <T>(
     method: string,
     args: unknown[] = []
@@ -70,6 +75,8 @@ function createHost(fileType: FileType) {
   return {
     calls,
     responses,
+    callbacks,
+    errors,
     host: {
       fileType,
       invokeEditorFacade,
@@ -77,11 +84,303 @@ function createHost(fileType: FileType) {
       createEditorFacadeModule,
       createValueObjectFacade,
       registerEditorFacadeListener: () => () => undefined,
-      registerEditorFacadeCallback: () => 'callback-id',
-      unregisterEditorFacadeCallback: () => undefined
+      registerEditorFacadeCallback: (
+        callback: (...args: unknown[]) => unknown | Promise<unknown>
+      ) => {
+        callbacks.set('callback-id', callback)
+        return 'callback-id'
+      },
+      unregisterEditorFacadeCallback: (callbackId: string) => {
+        callbacks.delete(callbackId)
+      },
+      reportEditorFacadeError: (message: string, error: unknown) => {
+        errors.push({ message, error })
+      }
     }
   }
 }
+
+async function flushPromises() {
+  await new Promise<void>((resolve) => setImmediate(resolve))
+}
+
+void test('mounts the typed ActiveDocument facade and document roots only for documents', async () => {
+  const document = buildRootFacadeState(createHost(FileType.Document).host)
+  const spreadsheet = buildRootFacadeState(
+    createHost(FileType.Spreadsheet).host
+  )
+  const presentation = buildRootFacadeState(
+    createHost(FileType.Presentation).host
+  )
+
+  assert.ok(document.ActiveDocument)
+  assert.ok(document.ActiveDocument?.Reference)
+  assert.ok(document.ActiveDocument?.Service)
+  assert.ok(document.ActiveDocument?.Sub)
+  assert.ok(document.ActiveDocument?.Env)
+  assert.equal(spreadsheet.ActiveDocument, undefined)
+  assert.equal(presentation.ActiveDocument, undefined)
+})
+
+void test('routes all typed root methods through productJSAPI paths', async () => {
+  const { host, responses, calls } = createHost(FileType.Document)
+  const prefix = 'productJSAPI.'
+  responses.set(`${prefix}Editor.Document.GetContent`, {
+    length: 3,
+    serialized: '{"ops":[{"insert":"Hi\\n"}]}'
+  })
+  responses.set(`${prefix}Editor.Document.GetTitleContent`, 'Title')
+  responses.set(`${prefix}Editor.GetEditMode`, 'edit')
+  responses.set(`${prefix}Editor.Document.Font.SetTextColor`, true)
+  responses.set(`${prefix}Editor.Document.Font.SetHighLightColor`, true)
+  responses.set(`${prefix}Editor.Document.Font.SetBold`, true)
+  responses.set(`${prefix}Editor.Document.Font.SetItalic`, true)
+  responses.set(`${prefix}Editor.Document.Font.SetUnderline`, true)
+  responses.set(`${prefix}Editor.Document.Font.SetStrike`, true)
+  responses.set(`${prefix}Reference.CanIUse`, true)
+  responses.set(`${prefix}Service.User.GetUserInfo`, { id: 'user-1' })
+  responses.set(`${prefix}Service.Permission.GetDocumentPermission`, {
+    read: true,
+    write: true,
+    comment: false
+  })
+  responses.set(`${prefix}Service.Collaboration.GetSaveStatus`, 'saved')
+  responses.set(`${prefix}Editor.Document.Markdown.GetMarkdown`, '# Title')
+  responses.set(`${prefix}Editor.Document.Markdown.AppendMarkdown`, {
+    start: 1,
+    end: 2
+  })
+  responses.set(`${prefix}Editor.Document.Markdown.InsertMarkdown`, {
+    start: 3,
+    end: 4
+  })
+  responses.set(`${prefix}Editor.Document.Markdown.ValidateMarkdown`, true)
+  responses.set(`${prefix}Editor.Document.Content.ReplaceSelection`, true)
+  responses.set(`${prefix}Editor.Document.Content.ReplaceAllContent`, true)
+  responses.set(`${prefix}Env.Language.GetLanguage`, 'zh-CN')
+  responses.set(`${prefix}Env.DocsMode.GetDocsMode`, 'normal')
+
+  const root = buildRootFacadeState(host)
+  assert.ok(root.ActiveDocument)
+  assert.ok(root.ActiveDocument.Reference)
+  assert.ok(root.ActiveDocument.Service)
+  assert.ok(root.ActiveDocument.Sub)
+  assert.ok(root.ActiveDocument.Env)
+  const editor = root.ActiveDocument.Editor
+  const document = editor.Document
+  const snapshot = await document.GetContent()
+  assert.deepEqual(
+    {
+      length: snapshot.length,
+      serialized: snapshot.serialized,
+      stringified: snapshot.stringify()
+    },
+    {
+      length: 3,
+      serialized: '{"ops":[{"insert":"Hi\\n"}]}',
+      stringified: '{"ops":[{"insert":"Hi\\n"}]}'
+    }
+  )
+  assert.equal('compose' in snapshot, false)
+  assert.equal('transform' in snapshot, false)
+  assert.equal(await document.GetTitleContent(), 'Title')
+  await document.SetTitleContent('Next title')
+  assert.equal(await editor.GetEditMode(), 'edit')
+  assert.equal(await document.Font.SetTextColor('#000000'), true)
+  assert.equal(await document.Font.SetHighLightColor('#ffff00'), true)
+  assert.equal(await document.Font.SetBold(), true)
+  assert.equal(await document.Font.SetItalic(false), true)
+  assert.equal(await document.Font.SetUnderline(true), true)
+  assert.equal(await document.Font.SetStrike(false), true)
+  assert.equal(await root.ActiveDocument.Reference.CanIUse(['a', 'b']), true)
+  assert.deepEqual(await root.ActiveDocument.Service.User.GetUserInfo(), {
+    id: 'user-1'
+  })
+  assert.deepEqual(
+    await root.ActiveDocument.Service.Permission.GetDocumentPermission(),
+    { read: true, write: true, comment: false }
+  )
+  assert.equal(
+    await root.ActiveDocument.Service.Collaboration.GetSaveStatus(),
+    'saved'
+  )
+  assert.equal(await document.Markdown.GetMarkdown(), '# Title')
+  assert.deepEqual(await document.Markdown.AppendMarkdown('tail'), {
+    start: 1,
+    end: 2
+  })
+  assert.deepEqual(await document.Markdown.InsertMarkdown('middle'), {
+    start: 3,
+    end: 4
+  })
+  assert.equal(await document.Markdown.ValidateMarkdown('# ok'), true)
+  assert.equal(await document.Content.ReplaceSelection('selection'), true)
+  assert.equal(await document.Content.ReplaceAllContent('all'), true)
+  assert.equal(await root.ActiveDocument.Env.Language.GetLanguage(), 'zh-CN')
+  assert.equal(await root.ActiveDocument.Env.DocsMode.GetDocsMode(), 'normal')
+  await root.ActiveDocument.Service.Export.DownloadDocument('pdf')
+
+  assert.deepEqual(
+    calls.map(({ method, args }) => ({ method, args })),
+    [
+      { method: `${prefix}Editor.Document.GetContent`, args: [] },
+      { method: `${prefix}Editor.Document.GetTitleContent`, args: [] },
+      {
+        method: `${prefix}Editor.Document.SetTitleContent`,
+        args: ['Next title']
+      },
+      { method: `${prefix}Editor.GetEditMode`, args: [] },
+      {
+        method: `${prefix}Editor.Document.Font.SetTextColor`,
+        args: ['#000000']
+      },
+      {
+        method: `${prefix}Editor.Document.Font.SetHighLightColor`,
+        args: ['#ffff00']
+      },
+      { method: `${prefix}Editor.Document.Font.SetBold`, args: [] },
+      {
+        method: `${prefix}Editor.Document.Font.SetItalic`,
+        args: [false]
+      },
+      {
+        method: `${prefix}Editor.Document.Font.SetUnderline`,
+        args: [true]
+      },
+      {
+        method: `${prefix}Editor.Document.Font.SetStrike`,
+        args: [false]
+      },
+      { method: `${prefix}Reference.CanIUse`, args: [['a', 'b']] },
+      { method: `${prefix}Service.User.GetUserInfo`, args: [] },
+      {
+        method: `${prefix}Service.Permission.GetDocumentPermission`,
+        args: []
+      },
+      {
+        method: `${prefix}Service.Collaboration.GetSaveStatus`,
+        args: []
+      },
+      {
+        method: `${prefix}Editor.Document.Markdown.GetMarkdown`,
+        args: []
+      },
+      {
+        method: `${prefix}Editor.Document.Markdown.AppendMarkdown`,
+        args: ['tail']
+      },
+      {
+        method: `${prefix}Editor.Document.Markdown.InsertMarkdown`,
+        args: ['middle']
+      },
+      {
+        method: `${prefix}Editor.Document.Markdown.ValidateMarkdown`,
+        args: ['# ok']
+      },
+      {
+        method: `${prefix}Editor.Document.Content.ReplaceSelection`,
+        args: ['selection']
+      },
+      {
+        method: `${prefix}Editor.Document.Content.ReplaceAllContent`,
+        args: ['all']
+      },
+      { method: `${prefix}Env.Language.GetLanguage`, args: [] },
+      { method: `${prefix}Env.DocsMode.GetDocsMode`, args: [] },
+      {
+        method: `${prefix}Service.Export.DownloadDocument`,
+        args: ['pdf']
+      }
+    ]
+  )
+})
+
+void test('rebuilds document change snapshots and disposes after async registration', async () => {
+  const { host, responses, calls, callbacks } = createHost(FileType.Document)
+  let resolveRegistration: ((subscriptionId: string) => void) | undefined
+  responses.set(
+    'productJSAPI.Sub.OnDocumentChange',
+    async () =>
+      await new Promise<string>((resolve) => {
+        resolveRegistration = resolve
+      })
+  )
+  const received: Array<{
+    length: number
+    serialized: string
+    stringified: string
+  }> = []
+  const root = buildRootFacadeState(host)
+  const activeDocument = root.ActiveDocument
+  assert.ok(activeDocument)
+  const dispose = activeDocument.Sub.OnDocumentChange((snapshot) => {
+    received.push({
+      length: snapshot.length,
+      serialized: snapshot.serialized,
+      stringified: snapshot.stringify()
+    })
+  })
+
+  await callbacks.get('callback-id')?.({ length: 2, serialized: 'delta-1' })
+  assert.deepEqual(received, [
+    { length: 2, serialized: 'delta-1', stringified: 'delta-1' }
+  ])
+  dispose()
+  dispose()
+  await callbacks.get('callback-id')?.({ length: 3, serialized: 'ignored' })
+  assert.equal(received.length, 1)
+  assert.equal(
+    calls.some(({ method }) => method === 'productJSAPI.Sub.OffDocumentChange'),
+    false
+  )
+
+  resolveRegistration?.('subscription-1')
+  await flushPromises()
+  assert.deepEqual(calls.at(-1), {
+    method: 'productJSAPI.Sub.OffDocumentChange',
+    args: ['subscription-1']
+  })
+  assert.equal(callbacks.has('callback-id'), false)
+})
+
+void test('reports document change registration and disposal failures', async () => {
+  const registration = createHost(FileType.Document)
+  const registrationError = new Error('registration failed')
+  registration.responses.set('productJSAPI.Sub.OnDocumentChange', async () => {
+    throw registrationError
+  })
+  const disposeRegistration = buildRootFacadeState(
+    registration.host
+  ).ActiveDocument?.Sub.OnDocumentChange(() => undefined)
+  await flushPromises()
+  assert.equal(registration.callbacks.size, 0)
+  assert.deepEqual(registration.errors, [
+    {
+      message: 'register document change listener failed',
+      error: registrationError
+    }
+  ])
+  disposeRegistration?.()
+
+  const disposal = createHost(FileType.Document)
+  const disposalError = new Error('disposal failed')
+  disposal.responses.set('productJSAPI.Sub.OnDocumentChange', 'subscription-1')
+  disposal.responses.set('productJSAPI.Sub.OffDocumentChange', async () => {
+    throw disposalError
+  })
+  const dispose = buildRootFacadeState(
+    disposal.host
+  ).ActiveDocument?.Sub.OnDocumentChange(() => undefined)
+  dispose?.()
+  await flushPromises()
+  assert.equal(disposal.callbacks.size, 0)
+  assert.deepEqual(disposal.errors, [
+    {
+      message: 'dispose document change listener failed',
+      error: disposalError
+    }
+  ])
+})
 
 void test('wraps SheetSelection locators and preserves optional arguments', async () => {
   const { host, responses, calls } = createHost(FileType.Spreadsheet)
