@@ -17,6 +17,11 @@ export const CONNECT_V2_FILE_TYPES = [
 
 export type ConnectV2FileType = (typeof CONNECT_V2_FILE_TYPES)[number]
 
+/**
+ * Preload 路由版本标识。只有完整的 `v2` 才启用 V2 路径，缺失或其他值按 V1 处理。
+ */
+export type ContentVersion = 'v1' | 'v2'
+
 export function isConnectV2FileType(
   value: unknown
 ): value is ConnectV2FileType {

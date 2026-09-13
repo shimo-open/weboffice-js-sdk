@@ -58,7 +58,8 @@ import {
   SlashMenuEntry,
   SlashMenuOptions
 } from './types/SlashMenu'
-import type { ConnectV2FileType } from './types/ConnectV2'
+import type { ConnectV2FileType, ContentVersion } from './types/ConnectV2'
+import { createPreloadInitPayload, type PreloadInitPayload } from './preload'
 import {
   applyHeaderBarsChanged,
   ensureHeaderBarsTitleChangeSubscription,
@@ -406,6 +407,8 @@ export class OfficeSDK extends TinyEmitter {
     type?: ConnectV2FileType
   }
 
+  private readonly contentVersion?: ContentVersion
+
   private _readyState: ReadyState = ReadyState.Loading
   private editor: any
   private readonly startParams: StartParams
@@ -467,12 +470,13 @@ export class OfficeSDK extends TinyEmitter {
   private readonly preloadDoneTimeoutMs = 8000
   private readonly preloadReadyTimeoutMs = 3000
 
-  constructor(options: OfficeSDKOptions) {
+  constructor(options: OfficeSDKOptions, contentVersion?: ContentVersion) {
     super()
 
     this.connectOptions = options as OfficeSDKOptions & {
       type?: ConnectV2FileType
     }
+    this.contentVersion = contentVersion
     this.uuid = uuid()
     this.userUuid = options.userUuid
     this.normalizedEmptyPage = normalizeEmptyPageOptions(options.emptyPage)
@@ -1072,13 +1076,7 @@ export class OfficeSDK extends TinyEmitter {
     type PreloadMessage = {
       type?: string
       requestId?: string
-      payload?: {
-        token?: string
-        signature?: string
-        fileGuid?: string
-        mode?: 'edit' | 'preview'
-        type?: ConnectV2FileType
-      }
+      payload?: PreloadInitPayload
       error?: {
         code?: string
         message?: string
@@ -1105,18 +1103,21 @@ export class OfficeSDK extends TinyEmitter {
       }
 
       const sendInit = () => {
+        const payload = createPreloadInitPayload({
+          token,
+          signature,
+          fileGuid,
+          mode: this.connectOptions.mode,
+          type: this.connectOptions.type,
+          contentVersion: this.contentVersion
+        })
+
         this.element?.contentWindow?.postMessage(
           {
             type: PRELOAD_MESSAGE_TYPE.INIT,
             requestId,
             ts: Date.now(),
-            payload: {
-              token,
-              signature,
-              fileGuid,
-              mode: this.connectOptions.mode,
-              type: this.connectOptions.type
-            }
+            payload
           },
           '*'
         )

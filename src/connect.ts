@@ -1,6 +1,7 @@
 import { OfficeSDK, OfficeSDKOptions } from './OfficeSDK'
 import {
   validateConnectV2Options,
+  type ContentVersion,
   type ConnectV2FileType
 } from './types/ConnectV2'
 
@@ -27,11 +28,12 @@ export interface ConnectV2Options extends ConnectOptions {
 }
 
 async function connectInternal(
-  options: ConnectOptions & { type?: ConnectV2FileType }
+  options: ConnectOptions & { type?: ConnectV2FileType },
+  contentVersion?: ContentVersion
 ): Promise<OfficeSDK> {
   let sdk: OfficeSDK | undefined
   try {
-    sdk = new OfficeSDK(options)
+    sdk = new OfficeSDK(options, contentVersion)
     await sdk.init()
     return sdk
   } catch (e) {
@@ -64,5 +66,5 @@ export async function connect(options: ConnectOptions): Promise<OfficeSDK> {
 export async function connectV2(options: ConnectV2Options): Promise<OfficeSDK> {
   validateConnectV2Options(options)
 
-  return await connectInternal(options)
+  return await connectInternal(options, 'v2')
 }
