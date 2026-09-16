@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "preversion": "npm run docs && git add -A docs && git diff-index --quiet HEAD || git commit -m 'docs: update'",
-    "test": "tsc -p tsconfig.test.json && node --test temp/test/test/OfficeSDK.facade.test.js temp/test/test/jsapi.contract.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test temp/test/test/OfficeSDK.facade.test.js temp/test/test/jsapi.contract.test.js temp/test/test/headerBarsAnchor.test.js",
     "contract-check": "node scripts/check-jsapi-contract.js",
     "showcase-contract-check": "node scripts/check-jsapi-contract.js --require-showcase",
     "build": "webpack && node scripts/normalize-dist-declarations.js",

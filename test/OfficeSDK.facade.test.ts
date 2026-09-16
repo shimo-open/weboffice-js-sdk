@@ -2,6 +2,13 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FileType } from 'weboffice-js-sdk-shared'
 import { buildRootFacadeState } from '../src/OfficeSDK.facade'
+import {
+  HEADER_BARS_METHOD,
+  initHeaderBarsFacade,
+  type HeaderBarsCapabilities,
+  type HeaderBarsCommandRef,
+  type HeaderBarsCommandState
+} from '../src/OfficeSDK.headerBars'
 
 type InvokeResponse =
   | unknown
@@ -601,5 +608,234 @@ void test('passes existing invoke errors through without an envelope', async () 
       name: 'InvokeError',
       message: 'iframe failed'
     }
+  )
+})
+
+void test('HeaderBars extension negotiates capabilities and sends atomic batches', async () => {
+  const calls: Array<{ method: string; payload?: Record<string, unknown> }> = []
+  const capabilities: HeaderBarsCapabilities = {
+    protocolVersion: 2,
+    features: {
+      treeCommands: true,
+      batchCommands: true,
+      sectionVisibility: true,
+      commandOptions: true,
+      commandOpenState: true,
+      commandEvents: true,
+      anchorEvents: true
+    }
+  }
+  const commands = new Map<string, HeaderBarsCommandState>()
+  const refs = new Map<string, HeaderBarsCommandRef>()
+  const clickCallbacks = new Map<
+    string,
+    (() => void | Promise<void>) | undefined
+  >()
+  const eventCallbacks = new Map<
+    string,
+    ((...args: any[]) => void | Promise<void>) | undefined
+  >()
+  let cachedCapabilities: HeaderBarsCapabilities = {
+    protocolVersion: 1,
+    features: {
+      treeCommands: false,
+      batchCommands: false,
+      sectionVisibility: false,
+      commandOptions: false,
+      commandOpenState: false,
+      commandEvents: false,
+      anchorEvents: false
+    }
+  }
+  const facade = initHeaderBarsFacade({
+    getVisibleState: () => true,
+    setVisibleState: () => undefined,
+    getCommandsMap: () => commands,
+    getOverridesMap: () => clickCallbacks,
+    getEventOverridesMap: () => eventCallbacks,
+    getCapabilitiesState: () => cachedCapabilities,
+    setCapabilitiesState: (next) => {
+      cachedCapabilities = next
+    },
+    getIframeElement: () => null,
+    getRefsMap: () => refs,
+    getTitleHandler: () => undefined,
+    setTitleHandler: () => undefined,
+    isTitleSubscribed: () => false,
+    setTitleSubscribed: () => undefined,
+    invokeHeaderBars: async <T>(
+      method: string,
+      payload?: Record<string, unknown>
+    ): Promise<T> => {
+      calls.push({ method, payload })
+      if (method === HEADER_BARS_METHOD.getCapabilities) {
+        return capabilities as T
+      }
+      if (method === HEADER_BARS_METHOD.addCommands) {
+        return JSON.parse('{"success":true}')
+      }
+      return undefined as T
+    },
+    emitHeaderBarsError: () => undefined,
+    onInternalTitleChange: () => undefined,
+    subscribeEditorTitleChange: async () => await Promise.resolve()
+  })
+
+  const onClick = async () => await Promise.resolve()
+  const result = await facade.addCommands(
+    [
+      {
+        id: 'custom-menu',
+        section: 'more',
+        onClick,
+        subItems: [{ id: 'custom-child', label: 'Child' }]
+      }
+    ],
+    'download',
+    'before'
+  )
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(calls[0]?.method, HEADER_BARS_METHOD.getCapabilities)
+  assert.equal(calls[1]?.method, HEADER_BARS_METHOD.addCommands)
+  assert.equal(
+    typeof (
+      (calls[1]?.payload?.commands as Array<Record<string, unknown>>)?.[0] ?? {}
+    ).onClick,
+    'undefined'
+  )
+  assert.equal(eventCallbacks.get('custom-menu:click'), onClick)
+})
+
+/** V2 事件回调测试用的宿主桩，记录 invoke 与回调表。 */
+function createHeaderBarsEventHost() {
+  const calls: Array<{ method: string; payload?: Record<string, unknown> }> = []
+  const commands = new Map<string, HeaderBarsCommandState>()
+  const refs = new Map<string, HeaderBarsCommandRef>()
+  const clickCallbacks = new Map<
+    string,
+    (() => void | Promise<void>) | undefined
+  >()
+  const eventCallbacks = new Map<
+    string,
+    ((...args: any[]) => void | Promise<void>) | undefined
+  >()
+  const capabilities: HeaderBarsCapabilities = {
+    protocolVersion: 2,
+    features: {
+      treeCommands: true,
+      batchCommands: true,
+      sectionVisibility: true,
+      commandOptions: true,
+      commandOpenState: true,
+      commandEvents: true,
+      anchorEvents: true
+    }
+  }
+  const facade = initHeaderBarsFacade({
+    getVisibleState: () => true,
+    setVisibleState: () => undefined,
+    getCommandsMap: () => commands,
+    getOverridesMap: () => clickCallbacks,
+    getEventOverridesMap: () => eventCallbacks,
+    getCapabilitiesState: () => capabilities,
+    setCapabilitiesState: () => undefined,
+    getIframeElement: () => null,
+    getRefsMap: () => refs,
+    getTitleHandler: () => undefined,
+    setTitleHandler: () => undefined,
+    isTitleSubscribed: () => false,
+    setTitleSubscribed: () => undefined,
+    invokeHeaderBars: async <T>(
+      method: string,
+      payload?: Record<string, unknown>
+    ): Promise<T> => {
+      calls.push({ method, payload })
+      return undefined as T
+    },
+    emitHeaderBarsError: () => undefined,
+    onInternalTitleChange: () => undefined,
+    subscribeEditorTitleChange: async () => await Promise.resolve()
+  })
+  return { facade, calls, eventCallbacks, clickCallbacks }
+}
+
+void test('HeaderBars V2 registers open/close callbacks and toggles the iframe flag', async () => {
+  const { facade, calls, eventCallbacks } = createHeaderBarsEventHost()
+  const onOpen = async () => await Promise.resolve()
+  const onClose = async () => await Promise.resolve()
+
+  const ref = facade.getCommand('collaborators')
+  ref.onCommandOpen = onOpen
+  ref.onCommandClose = onClose
+
+  assert.equal(eventCallbacks.get('collaborators:open'), onOpen)
+  assert.equal(eventCallbacks.get('collaborators:close'), onClose)
+
+  const openCalls = calls.filter(
+    (call) =>
+      call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+      call.payload?.event === 'open'
+  )
+  const closeCalls = calls.filter(
+    (call) =>
+      call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+      call.payload?.event === 'close'
+  )
+  assert.equal(openCalls.length, 1)
+  assert.deepEqual(openCalls[0]?.payload, {
+    id: 'collaborators',
+    event: 'open',
+    enabled: true
+  })
+  assert.equal(closeCalls.length, 1)
+  assert.deepEqual(closeCalls[0]?.payload, {
+    id: 'collaborators',
+    event: 'close',
+    enabled: true
+  })
+
+  // 解除注册后必须显式关闭 iframe 侧转发，否则默认成员卡片会被误抑制
+  ref.onCommandOpen = undefined
+  const disabledCalls = calls.filter(
+    (call) =>
+      call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+      call.payload?.event === 'open' &&
+      call.payload?.enabled === false
+  )
+  assert.equal(disabledCalls.length, 1)
+  assert.equal(eventCallbacks.get('collaborators:open'), undefined)
+})
+
+void test('HeaderBars V2 keeps click and open/close callbacks independent', async () => {
+  const { facade, calls, eventCallbacks, clickCallbacks } =
+    createHeaderBarsEventHost()
+  const onClick = async () => await Promise.resolve()
+  const onOpen = async () => await Promise.resolve()
+
+  const ref = facade.getCommand('collaborators')
+  ref.onCommandClick = onClick
+  ref.onCommandOpen = onOpen
+
+  // click 走 overrides map，open 走 event overrides map，两者不得互相污染
+  assert.equal(clickCallbacks.get('collaborators'), onClick)
+  assert.equal(eventCallbacks.get('collaborators:open'), onOpen)
+  assert.equal(eventCallbacks.get('collaborators'), undefined)
+  assert.equal(clickCallbacks.get('collaborators:open'), undefined)
+
+  // click 走旧通道（setCommandCallbackEnabled），open 走新通道（setCommandEventCallbackEnabled）；
+  // click 不得被写成事件回调，否则会额外开启 handleCommandEvent 转发
+  const clickEventFlagCalls = calls.filter(
+    (call) =>
+      call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+      call.payload?.event === 'click'
+  )
+  assert.equal(clickEventFlagCalls.length, 0)
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    [
+      HEADER_BARS_METHOD.setCommandCallbackEnabled,
+      HEADER_BARS_METHOD.setCommandEventCallbackEnabled
+    ]
   )
 })
