@@ -15,7 +15,7 @@
 
 ### 界面示意
 
-![image.png](https://api.apifox.com/api/v1/projects/6748269/resources/660638/image-preview)
+![image.png](https://support.shimo.net/api/v1/projects/345089/resources/338798/image-preview)
 
 ### 能力概览
 
@@ -311,6 +311,41 @@ console.log(commands)
 
 - 运行时返回结果优先于静态文档中的命令清单
 - 适合在批量更新后重新获取最新视图状态
+
+### HeaderBars extension 能力
+
+在 iframe SDK 和 HeaderBar 组件均支持扩展协议时，`headerBars` 还提供以下能力：
+
+```typescript
+const result = await sdk.headerBars.addCommands(
+  [
+    {
+      id: 'custom-menu',
+      section: 'more',
+      label: '自定义菜单',
+      subItems: [{ id: 'custom-action', label: '执行操作' }]
+    }
+  ],
+  'download',
+  'before'
+)
+
+await sdk.headerBars.setSectionVisible('right', false)
+
+const command = sdk.headerBars.getCommand('custom-menu')
+command.open = true
+command.onCommandOpen = (commandId, anchorRect, context) => {
+  // anchorRect 为相对于当前回调 window viewport 的可序列化矩形
+}
+```
+
+扩展协议支持批量插入、左右分区显隐、最多三级子菜单、divider、样式和
+`click/open/close` 事件。`addCommands()` 和 `setSectionVisible()` 返回
+`{ success, code?, message? }`；当当前 iframe 不支持扩展协议时返回
+`HEADER_BARS_PROTOCOL_UNSUPPORTED`，现有 v1 API 继续按原行为工作。
+
+当前扩展能力仅适用于 PC 端 Document、DocumentPro、Spreadsheet 和 Presentation。
+H5、Table、Form、Board、Mindmap、Flowchart 继续使用 v1 行为。
 
 #### `commandRef.visible`
 

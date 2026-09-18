@@ -75,6 +75,7 @@ import type {
   CommentsFacade,
   ContentFacade,
   DiscussionFacade,
+  DocsActiveOutlineFacade,
   DocsOutlineFacade,
   DocsSearchFacade,
   DocsSelectionFacade,
@@ -102,12 +103,19 @@ import type {
   HeaderBarsChangedPayload,
   HeaderBarsCommandRef,
   HeaderBarsCommandState,
+  HeaderBarsCommandEvent,
+  HeaderBarsCommandEventPayload,
+  HeaderBarsCommandEventResult,
+  HeaderBarsCapabilities,
+  HeaderBarsAnchorRect,
   HeaderBarsFacade,
   HeaderBarsTitleChangeHandler
 } from './OfficeSDK.headerBars'
+import { toHeaderBarsCallbackAnchorRect } from './headerBarsAnchor'
 
 export * from './OfficeSDK.facade.types'
 export * from './OfficeSDK.headerBars'
+export { toHeaderBarsCallbackAnchorRect } from './headerBarsAnchor'
 
 const globalThis = getGlobal()
 const AUD = 'smjssdk'
@@ -223,6 +231,9 @@ export class OfficeSDK extends TinyEmitter {
    * @deprecated - 用 `sdk.getEditor<T>()` 替代
    */
   spreadsheet?: Spreadsheet.Editor
+
+  /** 当前轻文档的标准化、强类型文档入口。 */
+  ActiveOutline?: DocsActiveOutlineFacade
 
   /**
    * 当前套件支持的标题能力。
@@ -427,6 +438,24 @@ export class OfficeSDK extends TinyEmitter {
     string,
     (() => void | Promise<void>) | undefined
   >()
+
+  private readonly headerBarsCommandEventOverrides = new Map<
+    string,
+    ((...args: any[]) => void | Promise<void>) | undefined
+  >()
+
+  private headerBarsCapabilities: HeaderBarsCapabilities = {
+    protocolVersion: 1,
+    features: {
+      treeCommands: false,
+      batchCommands: false,
+      sectionVisibility: false,
+      commandOptions: false,
+      commandOpenState: false,
+      commandEvents: false,
+      anchorEvents: false
+    }
+  }
 
   private readonly slashMenuCallbacks = new Map<string, () => void>()
   private readonly editorFacadeCallbacks = new Map<
@@ -1167,6 +1196,42 @@ export class OfficeSDK extends TinyEmitter {
     )
 
     channel.addInvokeHandler(
+      HEADER_BARS_METHOD.handleCommandEvent,
+      async (payload: HeaderBarsCommandEventPayload) => {
+        if (!payload || typeof payload.commandId !== 'string') {
+          return 'failed' as HeaderBarsCommandEventResult
+        }
+        const handler = this.headerBarsCommandEventOverrides.get(
+          `${payload.commandId}:${payload.event}`
+        )
+        if (typeof handler !== 'function') {
+          return 'unhandled' as HeaderBarsCommandEventResult
+        }
+        const anchorRect = this.toHeaderBarsCallbackAnchorRect(
+          payload.anchorRect
+        )
+        const event: HeaderBarsCommandEvent = {
+          commandId: payload.commandId,
+          event: payload.event,
+          anchorRect,
+          context: payload.context
+        }
+        try {
+          if (payload.event === 'click') {
+            await handler(event)
+          } else {
+            await handler(payload.commandId, anchorRect, payload.context ?? {})
+          }
+          return 'handled' as HeaderBarsCommandEventResult
+        } catch (error: unknown) {
+          this.emit(Event.Error, error)
+          return 'failed' as HeaderBarsCommandEventResult
+        }
+      },
+      { audience: AUD }
+    )
+
+    channel.addInvokeHandler(
       SLASH_MENU_METHOD.handleButtonClick,
       async (callbackId: string) => {
         const handler = this.slashMenuCallbacks.get(callbackId)
@@ -1340,6 +1405,12 @@ export class OfficeSDK extends TinyEmitter {
       },
       getCommandsMap: () => this.headerBarsCommands,
       getOverridesMap: () => this.headerBarsCommandOverrides,
+      getEventOverridesMap: () => this.headerBarsCommandEventOverrides,
+      getCapabilitiesState: () => this.headerBarsCapabilities,
+      setCapabilitiesState: (capabilities: HeaderBarsCapabilities) => {
+        this.headerBarsCapabilities = capabilities
+      },
+      getIframeElement: () => this.element,
       getRefsMap: () => this.headerBarsCommandRefs,
       getTitleHandler: () => this.headerBarsTitleChangeHandler,
       setTitleHandler: (handler: HeaderBarsTitleChangeHandler | undefined) => {
@@ -1390,6 +1461,23 @@ export class OfficeSDK extends TinyEmitter {
     })
   }
 
+  /**
+   * 将 iframe viewport 坐标转换为宿主 window viewport 坐标。
+   * 输入为 iframe 内事件矩形；输出不包含任何 DOM 对象。
+   */
+  private toHeaderBarsCallbackAnchorRect(
+    anchorRect: HeaderBarsCommandEventPayload['anchorRect']
+  ): HeaderBarsAnchorRect {
+    return toHeaderBarsCallbackAnchorRect(
+      anchorRect,
+      this.element?.getBoundingClientRect() ?? null,
+      {
+        width: globalThis.innerWidth,
+        height: globalThis.innerHeight
+      }
+    )
+  }
+
   private syncHeaderBarsCommands(commands: HeaderBarsCommandState[]) {
     syncHeaderBarsCommands(this.createHeaderBarsHost(), commands)
   }
@@ -1402,6 +1490,12 @@ export class OfficeSDK extends TinyEmitter {
       },
       getCommandsMap: () => this.headerBarsCommands,
       getOverridesMap: () => this.headerBarsCommandOverrides,
+      getEventOverridesMap: () => this.headerBarsCommandEventOverrides,
+      getCapabilitiesState: () => this.headerBarsCapabilities,
+      setCapabilitiesState: (capabilities: HeaderBarsCapabilities) => {
+        this.headerBarsCapabilities = capabilities
+      },
+      getIframeElement: () => this.element,
       getRefsMap: () => this.headerBarsCommandRefs,
       getTitleHandler: () => this.headerBarsTitleChangeHandler,
       setTitleHandler: (handler: HeaderBarsTitleChangeHandler | undefined) => {
@@ -1467,6 +1561,13 @@ export class OfficeSDK extends TinyEmitter {
    */
   private unregisterEditorFacadeCallback(callbackId: string) {
     this.editorFacadeCallbacks.delete(callbackId)
+  }
+
+  private reportEditorFacadeError(message: string, error: unknown) {
+    this.emit(
+      Event.Error,
+      error instanceof Error ? error : new Error(`${message}: ${String(error)}`)
+    )
   }
 
   /**
@@ -1562,7 +1663,8 @@ export class OfficeSDK extends TinyEmitter {
         registerEditorFacadeCallback:
           this.registerEditorFacadeCallback.bind(this),
         unregisterEditorFacadeCallback:
-          this.unregisterEditorFacadeCallback.bind(this)
+          this.unregisterEditorFacadeCallback.bind(this),
+        reportEditorFacadeError: this.reportEditorFacadeError.bind(this)
       })
     )
   }
@@ -1573,6 +1675,7 @@ export class OfficeSDK extends TinyEmitter {
    * 输出：将所有 facade 字段置空。
    */
   private clearRootFacade() {
+    this.ActiveOutline = undefined
     this.title = undefined
     this.history = undefined
     this.comments = undefined

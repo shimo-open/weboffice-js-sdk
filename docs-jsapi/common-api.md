@@ -13,7 +13,7 @@
 - 断开连接
 - 更新鉴权信息
 
-`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看 [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)。
+`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看[顶部栏定制 HeaderBars](apifox://link/pages/338259)。
 
 ---
 

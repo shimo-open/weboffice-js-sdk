@@ -8,6 +8,9 @@ import type {
   Content,
   ContentFacade,
   DiscussionFacade,
+  DocsActiveOutlineFacade,
+  DocsDocumentPermission,
+  DocsEditorDeltaSnapshot,
   DocsRangeFacade,
   DocsRangeValue,
   DocsSearchFacade,
@@ -81,6 +84,217 @@ interface FacadeHost {
   ): () => void
   registerEditorFacadeCallback(callback: EditorFacadeCallback): string
   unregisterEditorFacadeCallback(callbackId: string): void
+  reportEditorFacadeError(message: string, error: unknown): void
+}
+
+interface SerializedDocsEditorDelta {
+  length: number
+  serialized: string
+}
+
+function createDocsEditorDeltaSnapshot(
+  value: SerializedDocsEditorDelta
+): DocsEditorDeltaSnapshot {
+  const serialized = value.serialized
+  return {
+    length: value.length,
+    serialized,
+    stringify: () => serialized
+  }
+}
+
+interface DocsActiveOutlineRoot {
+  ActiveOutline: DocsActiveOutlineFacade
+}
+
+function createDocsActiveOutlineRoot(host: FacadeHost): DocsActiveOutlineRoot {
+  const invokeProductJSAPI = async <T>(
+    method: string,
+    args: unknown[] = []
+  ): Promise<T> =>
+    await host.invokeEditorFacade<T>(`productJSAPI.${method}`, args)
+
+  const activeOutline: DocsActiveOutlineFacade = {
+    Editor: {
+      GetEditMode: async () =>
+        await invokeProductJSAPI<string>('Editor.GetEditMode'),
+      Document: {
+        GetContent: async () => {
+          const value = await invokeProductJSAPI<SerializedDocsEditorDelta>(
+            'Editor.Document.GetContent'
+          )
+          return createDocsEditorDeltaSnapshot(value)
+        },
+        GetTitleContent: async () =>
+          await invokeProductJSAPI<string>('Editor.Document.GetTitleContent'),
+        SetTitleContent: async (title: string) => {
+          await invokeProductJSAPI<undefined>(
+            'Editor.Document.SetTitleContent',
+            [title]
+          )
+        },
+        Font: {
+          SetTextColor: async (color: string) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetTextColor',
+              [color]
+            ),
+          SetHighLightColor: async (color: string) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetHighLightColor',
+              [color]
+            ),
+          SetBold: async (value?: boolean) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetBold',
+              typeof value === 'undefined' ? [] : [value]
+            ),
+          SetItalic: async (value?: boolean) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetItalic',
+              typeof value === 'undefined' ? [] : [value]
+            ),
+          SetUnderline: async (value?: boolean) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetUnderline',
+              typeof value === 'undefined' ? [] : [value]
+            ),
+          SetStrike: async (value?: boolean) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Font.SetStrike',
+              typeof value === 'undefined' ? [] : [value]
+            )
+        },
+        Markdown: {
+          GetMarkdown: async () =>
+            await invokeProductJSAPI<string>(
+              'Editor.Document.Markdown.GetMarkdown'
+            ),
+          AppendMarkdown: async (value: string) =>
+            await invokeProductJSAPI<DocsRangeValue>(
+              'Editor.Document.Markdown.AppendMarkdown',
+              [value]
+            ),
+          InsertMarkdown: async (value: string) =>
+            await invokeProductJSAPI<DocsRangeValue>(
+              'Editor.Document.Markdown.InsertMarkdown',
+              [value]
+            ),
+          ValidateMarkdown: async (value: string) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Markdown.ValidateMarkdown',
+              [value]
+            )
+        },
+        Content: {
+          ReplaceSelection: async (value: string) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Content.ReplaceSelection',
+              [value]
+            ),
+          ReplaceAllContent: async (value: string) =>
+            await invokeProductJSAPI<boolean>(
+              'Editor.Document.Content.ReplaceAllContent',
+              [value]
+            )
+        }
+      }
+    },
+    Reference: {
+      CanIUse: async (scopes: string | string[]) =>
+        await invokeProductJSAPI<boolean>('Reference.CanIUse', [scopes])
+    },
+    Service: {
+      User: {
+        GetUserInfo: async () =>
+          await invokeProductJSAPI<unknown>('Service.User.GetUserInfo')
+      },
+      Permission: {
+        GetDocumentPermission: async () =>
+          await invokeProductJSAPI<DocsDocumentPermission>(
+            'Service.Permission.GetDocumentPermission'
+          )
+      },
+      Export: {
+        DownloadDocument: async (format) => {
+          await invokeProductJSAPI<undefined>(
+            'Service.Export.DownloadDocument',
+            [format]
+          )
+        }
+      },
+      Collaboration: {
+        GetSaveStatus: async () =>
+          await invokeProductJSAPI<unknown>(
+            'Service.Collaboration.GetSaveStatus'
+          )
+      }
+    },
+    Sub: {
+      OnDocumentChange: (handler) => {
+        let disposed = false
+        let callbackRegistered = true
+        const callbackId = host.registerEditorFacadeCallback(
+          (value: SerializedDocsEditorDelta) => {
+            if (!disposed) {
+              handler(createDocsEditorDeltaSnapshot(value))
+            }
+          }
+        )
+        const unregisterCallback = () => {
+          if (callbackRegistered) {
+            callbackRegistered = false
+            host.unregisterEditorFacadeCallback(callbackId)
+          }
+        }
+        const registration = invokeProductJSAPI<string>(
+          'Sub.OnDocumentChange',
+          [callbackId]
+        ).catch((error: unknown) => {
+          unregisterCallback()
+          host.reportEditorFacadeError(
+            'register document change listener failed',
+            error
+          )
+          return undefined
+        })
+
+        return () => {
+          if (disposed) {
+            return
+          }
+          disposed = true
+          void registration
+            .then(async (subscriptionId) => {
+              if (typeof subscriptionId === 'string') {
+                await invokeProductJSAPI<undefined>('Sub.OffDocumentChange', [
+                  subscriptionId
+                ])
+              }
+            })
+            .catch((error: unknown) => {
+              host.reportEditorFacadeError(
+                'dispose document change listener failed',
+                error
+              )
+            })
+            .then(() => unregisterCallback())
+        }
+      }
+    },
+    Env: {
+      Language: {
+        GetLanguage: async () =>
+          await invokeProductJSAPI<string>('Env.Language.GetLanguage')
+      },
+      DocsMode: {
+        GetDocsMode: async () =>
+          await invokeProductJSAPI<string>('Env.DocsMode.GetDocsMode')
+      }
+    }
+  }
+
+  return { ActiveOutline: activeOutline }
 }
 
 function createDocsRangeFacade(
@@ -848,6 +1062,7 @@ export function buildRootFacadeState(
   switch (host.fileType) {
     case FileType.Document:
       return {
+        ...createDocsActiveOutlineRoot(host),
         title: titleFacade,
         history: historyFacade,
         comments: commentsFacade,
