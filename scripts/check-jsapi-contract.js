@@ -33,7 +33,7 @@ for (const api of catalog.apis) {
   if (facadePaths.has(api.facadePath))
     errors.push(`duplicate facade path: ${api.facadePath}`)
   facadePaths.add(api.facadePath)
-  const validRoot = api.facadePath.startsWith('ActiveDocument.')
+  const validRoot = api.facadePath.startsWith('ActiveOutline.')
   if (!validRoot)
     errors.push(`facade path must start with a supported root: ${api.id}`)
   if (!allowedTransports.has(api.transport))

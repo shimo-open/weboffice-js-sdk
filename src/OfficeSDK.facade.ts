@@ -8,7 +8,7 @@ import type {
   Content,
   ContentFacade,
   DiscussionFacade,
-  DocsActiveDocumentFacade,
+  DocsActiveOutlineFacade,
   DocsDocumentPermission,
   DocsEditorDeltaSnapshot,
   DocsRangeFacade,
@@ -103,20 +103,18 @@ function createDocsEditorDeltaSnapshot(
   }
 }
 
-interface DocsActiveDocumentRoot {
-  ActiveDocument: DocsActiveDocumentFacade
+interface DocsActiveOutlineRoot {
+  ActiveOutline: DocsActiveOutlineFacade
 }
 
-function createDocsActiveDocumentRoot(
-  host: FacadeHost
-): DocsActiveDocumentRoot {
+function createDocsActiveOutlineRoot(host: FacadeHost): DocsActiveOutlineRoot {
   const invokeProductJSAPI = async <T>(
     method: string,
     args: unknown[] = []
   ): Promise<T> =>
     await host.invokeEditorFacade<T>(`productJSAPI.${method}`, args)
 
-  const activeDocument: DocsActiveDocumentFacade = {
+  const activeOutline: DocsActiveOutlineFacade = {
     Editor: {
       GetEditMode: async () =>
         await invokeProductJSAPI<string>('Editor.GetEditMode'),
@@ -296,7 +294,7 @@ function createDocsActiveDocumentRoot(
     }
   }
 
-  return { ActiveDocument: activeDocument }
+  return { ActiveOutline: activeOutline }
 }
 
 function createDocsRangeFacade(
@@ -1064,7 +1062,7 @@ export function buildRootFacadeState(
   switch (host.fileType) {
     case FileType.Document:
       return {
-        ...createDocsActiveDocumentRoot(host),
+        ...createDocsActiveOutlineRoot(host),
         title: titleFacade,
         history: historyFacade,
         comments: commentsFacade,

@@ -51,7 +51,7 @@ export function validateJSAPIContractCatalog(
       errors.push(`duplicate facade path: ${api.facadePath}`)
     }
     facadePaths.add(api.facadePath)
-    const validRoot = ['ActiveDocument.'].some((prefix) =>
+    const validRoot = ['ActiveOutline.'].some((prefix) =>
       api.facadePath.startsWith(prefix)
     )
     if (!validRoot) {

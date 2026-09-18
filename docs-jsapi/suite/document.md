@@ -6,7 +6,7 @@
 
 | 方法                                                                | 说明                                       |
 | ------------------------------------------------------------------- | ------------------------------------------ |
-| [sdk.ActiveDocument](#sdkactivedocument)                            | 标准化强类型文档 API（PC only，`co-1.8+`） |
+| [sdk.ActiveOutline](#sdkactiveoutline)                              | 标准化强类型文档 API（PC only，`co-1.8+`） |
 | [sdk.title.addChangedListener](#sdktitleaddchangedlistenerlistener) | 监听标题变化（PC only，`co-1.8+`）         |
 | [sdk.title.setTitle](#sdktitlesettitletitle)                        | 设置标题（PC only，`co-1.8+`）             |
 | [sdk.history.show](#sdkhistoryshow)                                 | 显示历史（PC only，`co-1.8+`）             |
@@ -39,7 +39,7 @@
 ```typescript
 const sdk = await connect(options)
 
-const document = sdk.ActiveDocument?.Editor.Document
+const document = sdk.ActiveOutline?.Editor.Document
 const content = await document?.GetContent()
 await document?.Font.SetBold(true)
 
@@ -62,7 +62,7 @@ await sdk.getEditor().setTitle?.('Weekly Report')
 await sdk.title?.setTitle('Weekly Report')
 
 // 新增的标准化强类型入口，仅文档套件挂载
-await sdk.ActiveDocument?.Editor.Document.SetTitleContent('Weekly Report')
+await sdk.ActiveOutline?.Editor.Document.SetTitleContent('Weekly Report')
 ```
 
 ### 旧方法兼容
@@ -90,25 +90,25 @@ await sdk.ActiveDocument?.Editor.Document.SetTitleContent('Weekly Report')
 | `sdk.getEditor().hideCollaborator()`              | 隐藏编写者信息 | `sdk.collaborator?.hide()`              |
 | `sdk.getEditor().insertExternalApp(url, params?)` | 插入第三方应用 | `sdk.externalApp?.insert(url, params?)` |
 
-### sdk.ActiveDocument
+### sdk.ActiveOutline
 
 #### 说明
 
-`ActiveDocument` 是仅文档套件挂载的同步 typed facade 对象；`Reference`、`Service`、`Sub` 和 `Env` 是其下与 `Editor` 同级的产品能力对象。
+`ActiveOutline` 是仅文档套件挂载的同步 typed facade 对象；`Reference`、`Service`、`Sub` 和 `Env` 是其下与 `Editor` 同级的产品能力对象。
 
-本期标准化 API 按 `ActiveDocument.Editor`、`ActiveDocument.Reference`、`ActiveDocument.Service`、`ActiveDocument.Sub` 和 `ActiveDocument.Env` 组织。除事件注册返回同步 disposer 外，所有跨 iframe 方法都返回 `Promise`。
+本期标准化 API 按 `ActiveOutline.Editor`、`ActiveOutline.Reference`、`ActiveOutline.Service`、`ActiveOutline.Sub` 和 `ActiveOutline.Env` 组织。除事件注册返回同步 disposer 外，所有跨 iframe 方法都返回 `Promise`。
 
 #### 调用方式
 
 ```typescript
 const sdk = await connect(options)
-const activeDocument = sdk.ActiveDocument
+const activeOutline = sdk.ActiveOutline
 
-if (!activeDocument) {
+if (!activeOutline) {
   throw new Error('当前文件不支持标准化文档 API')
 }
 
-const editor = activeDocument.Editor
+const editor = activeOutline.Editor
 const document = editor.Document
 
 const delta = await document.GetContent()
@@ -120,37 +120,37 @@ await document.Markdown.AppendMarkdown('\n新增内容')
 
 #### 方法列表
 
-| 方法                                                              | 返回类型                           | 说明                                     |
-| ----------------------------------------------------------------- | ---------------------------------- | ---------------------------------------- |
-| `ActiveDocument.Editor.Document.GetContent()`                     | `Promise<DocsEditorDeltaSnapshot>` | 获取正文 Delta 快照                      |
-| `ActiveDocument.Editor.Document.GetTitleContent()`                | `Promise<string>`                  | 获取标题内容                             |
-| `ActiveDocument.Editor.Document.SetTitleContent(title)`           | `Promise<void>`                    | 设置标题内容                             |
-| `ActiveDocument.Editor.Document.Font.SetTextColor(color)`         | `Promise<boolean>`                 | 设置文字颜色                             |
-| `ActiveDocument.Editor.Document.Font.SetHighLightColor(color)`    | `Promise<boolean>`                 | 设置高亮颜色                             |
-| `ActiveDocument.Editor.Document.Font.SetBold(value?)`             | `Promise<boolean>`                 | 设置或切换粗体                           |
-| `ActiveDocument.Editor.Document.Font.SetItalic(value?)`           | `Promise<boolean>`                 | 设置或切换斜体                           |
-| `ActiveDocument.Editor.Document.Font.SetUnderline(value?)`        | `Promise<boolean>`                 | 设置或切换下划线                         |
-| `ActiveDocument.Editor.Document.Font.SetStrike(value?)`           | `Promise<boolean>`                 | 设置或切换删除线                         |
-| `ActiveDocument.Reference.CanIUse(scopes)`                        | `Promise<boolean>`                 | 查询一个或多个能力是否可用               |
-| `ActiveDocument.Editor.GetEditMode()`                             | `Promise<string>`                  | 获取编辑模式                             |
-| `ActiveDocument.Service.User.GetUserInfo()`                       | `Promise<unknown>`                 | 获取用户信息；返回结构以后续产品契约为准 |
-| `ActiveDocument.Service.Permission.GetDocumentPermission()`       | `Promise<DocsDocumentPermission>`  | 获取文档权限                             |
-| `ActiveDocument.Env.Language.GetLanguage()`                       | `Promise<string>`                  | 获取当前语言                             |
-| `ActiveDocument.Env.DocsMode.GetDocsMode()`                       | `Promise<string>`                  | 获取文档模式                             |
-| `ActiveDocument.Sub.OnDocumentChange(handler)`                    | `() => void`                       | 监听文档变化并返回取消函数               |
-| `ActiveDocument.Service.Collaboration.GetSaveStatus()`            | `Promise<unknown>`                 | 获取保存状态；返回结构以后续产品契约为准 |
-| `ActiveDocument.Editor.Document.Markdown.GetMarkdown()`           | `Promise<string>`                  | 获取 Markdown                            |
-| `ActiveDocument.Editor.Document.Markdown.AppendMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在文档末尾追加 Markdown                  |
-| `ActiveDocument.Editor.Document.Markdown.InsertMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在当前选区插入 Markdown                  |
-| `ActiveDocument.Editor.Document.Markdown.ValidateMarkdown(value)` | `Promise<boolean>`                 | 校验 Markdown 是否可转换                 |
-| `ActiveDocument.Editor.Document.Content.ReplaceSelection(value)`  | `Promise<boolean>`                 | 替换当前选区内容                         |
-| `ActiveDocument.Editor.Document.Content.ReplaceAllContent(value)` | `Promise<boolean>`                 | 替换全文内容                             |
-| `ActiveDocument.Service.Export.DownloadDocument(format)`          | `Promise<void>`                    | 下载文档                                 |
+| 方法                                                             | 返回类型                           | 说明                                     |
+| ---------------------------------------------------------------- | ---------------------------------- | ---------------------------------------- |
+| `ActiveOutline.Editor.Document.GetContent()`                     | `Promise<DocsEditorDeltaSnapshot>` | 获取正文 Delta 快照                      |
+| `ActiveOutline.Editor.Document.GetTitleContent()`                | `Promise<string>`                  | 获取标题内容                             |
+| `ActiveOutline.Editor.Document.SetTitleContent(title)`           | `Promise<void>`                    | 设置标题内容                             |
+| `ActiveOutline.Editor.Document.Font.SetTextColor(color)`         | `Promise<boolean>`                 | 设置文字颜色                             |
+| `ActiveOutline.Editor.Document.Font.SetHighLightColor(color)`    | `Promise<boolean>`                 | 设置高亮颜色                             |
+| `ActiveOutline.Editor.Document.Font.SetBold(value?)`             | `Promise<boolean>`                 | 设置或切换粗体                           |
+| `ActiveOutline.Editor.Document.Font.SetItalic(value?)`           | `Promise<boolean>`                 | 设置或切换斜体                           |
+| `ActiveOutline.Editor.Document.Font.SetUnderline(value?)`        | `Promise<boolean>`                 | 设置或切换下划线                         |
+| `ActiveOutline.Editor.Document.Font.SetStrike(value?)`           | `Promise<boolean>`                 | 设置或切换删除线                         |
+| `ActiveOutline.Reference.CanIUse(scopes)`                        | `Promise<boolean>`                 | 查询一个或多个能力是否可用               |
+| `ActiveOutline.Editor.GetEditMode()`                             | `Promise<string>`                  | 获取编辑模式                             |
+| `ActiveOutline.Service.User.GetUserInfo()`                       | `Promise<unknown>`                 | 获取用户信息；返回结构以后续产品契约为准 |
+| `ActiveOutline.Service.Permission.GetDocumentPermission()`       | `Promise<DocsDocumentPermission>`  | 获取文档权限                             |
+| `ActiveOutline.Env.Language.GetLanguage()`                       | `Promise<string>`                  | 获取当前语言                             |
+| `ActiveOutline.Env.DocsMode.GetDocsMode()`                       | `Promise<string>`                  | 获取文档模式                             |
+| `ActiveOutline.Sub.OnDocumentChange(handler)`                    | `() => void`                       | 监听文档变化并返回取消函数               |
+| `ActiveOutline.Service.Collaboration.GetSaveStatus()`            | `Promise<unknown>`                 | 获取保存状态；返回结构以后续产品契约为准 |
+| `ActiveOutline.Editor.Document.Markdown.GetMarkdown()`           | `Promise<string>`                  | 获取 Markdown                            |
+| `ActiveOutline.Editor.Document.Markdown.AppendMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在文档末尾追加 Markdown                  |
+| `ActiveOutline.Editor.Document.Markdown.InsertMarkdown(value)`   | `Promise<DocsRangeValue>`          | 在当前选区插入 Markdown                  |
+| `ActiveOutline.Editor.Document.Markdown.ValidateMarkdown(value)` | `Promise<boolean>`                 | 校验 Markdown 是否可转换                 |
+| `ActiveOutline.Editor.Document.Content.ReplaceSelection(value)`  | `Promise<boolean>`                 | 替换当前选区内容                         |
+| `ActiveOutline.Editor.Document.Content.ReplaceAllContent(value)` | `Promise<boolean>`                 | 替换全文内容                             |
+| `ActiveOutline.Service.Export.DownloadDocument(format)`          | `Promise<void>`                    | 下载文档                                 |
 
 #### 文档变化监听
 
 ```typescript
-const dispose = sdk.ActiveDocument?.Sub.OnDocumentChange((delta) => {
+const dispose = sdk.ActiveOutline?.Sub.OnDocumentChange((delta) => {
   console.log(delta.length, delta.serialized)
 })
 
@@ -1413,7 +1413,7 @@ interface DocsDefaultStyle {
 
 ## 注意事项
 
-- `sdk.ActiveDocument` 只在文档套件挂载；`Reference`、`Service`、`Sub` 和 `Env` 位于 `sdk.ActiveDocument` 下，使用前应处理 `undefined`。
+- `sdk.ActiveOutline` 只在文档套件挂载；`Reference`、`Service`、`Sub` 和 `Env` 位于 `sdk.ActiveOutline` 下，使用前应处理 `undefined`。
 - `DocsEditorDeltaSnapshot` 只保证 `length`、`serialized` 和 `stringify()`，不包含编辑器运行时对象方法。
 - `Sub.OnDocumentChange()` 的取消函数是同步调用；注册和释放过程中的异步错误通过 SDK 的 `error` 事件报告。
 - `sdk.getEditor()` 与既有根级 facade 继续保留，用于历史业务兼容。

@@ -1,7 +1,7 @@
 import type {
   AddChartFromSelectionResult,
   BasicPresentationFacade,
-  DocsActiveDocumentFacade,
+  DocsActiveOutlineFacade,
   DocsEditorDeltaSnapshot,
   DocsRangeFacade,
   DocsRangeValue,
@@ -50,35 +50,35 @@ type RootPresentation = NonNullable<OfficeSDK['presentation']>
 
 export type EditorFacadeContractAssertions = [
   Assert<
-    IsEqual<NonNullable<OfficeSDK['ActiveDocument']>, DocsActiveDocumentFacade>
+    IsEqual<NonNullable<OfficeSDK['ActiveOutline']>, DocsActiveOutlineFacade>
   >,
   Assert<
     IsEqual<
-      DocsActiveDocumentFacade['Editor']['Document']['GetContent'],
+      DocsActiveOutlineFacade['Editor']['Document']['GetContent'],
       () => Promise<DocsEditorDeltaSnapshot>
     >
   >,
   Assert<
     IsEqual<
-      DocsActiveDocumentFacade['Editor']['Document']['Markdown']['AppendMarkdown'],
+      DocsActiveOutlineFacade['Editor']['Document']['Markdown']['AppendMarkdown'],
       (value: string) => Promise<DocsRangeValue>
     >
   >,
   Assert<
     IsEqual<
-      DocsActiveDocumentFacade['Service']['Permission']['GetDocumentPermission'],
+      DocsActiveOutlineFacade['Service']['Permission']['GetDocumentPermission'],
       () => Promise<import('./OfficeSDK').DocsDocumentPermission>
     >
   >,
   Assert<
     IsEqual<
-      DocsActiveDocumentFacade['Service']['Export']['DownloadDocument'],
+      DocsActiveOutlineFacade['Service']['Export']['DownloadDocument'],
       (format: import('./OfficeSDK').DocsDownloadDocumentType) => Promise<void>
     >
   >,
   Assert<
     IsEqual<
-      DocsActiveDocumentFacade['Sub']['OnDocumentChange'],
+      DocsActiveOutlineFacade['Sub']['OnDocumentChange'],
       (handler: (delta: DocsEditorDeltaSnapshot) => void) => () => void
     >
   >,

@@ -60,7 +60,7 @@ export interface DocsProductEditorFacade {
   Document: DocsProductDocumentFacade
 }
 
-export interface DocsActiveDocumentFacade {
+export interface DocsActiveOutlineFacade {
   Editor: DocsProductEditorFacade
   Reference: DocsProductReferenceFacade
   Service: DocsProductServiceFacade
@@ -1298,7 +1298,7 @@ export interface PresentationEventSubscriptionFacade {
 }
 
 export interface OfficeSDKRootFacadeState {
-  ActiveDocument?: DocsActiveDocumentFacade
+  ActiveOutline?: DocsActiveOutlineFacade
   title?: TitleFacade
   history?: HistoryFacade
   comments?: CommentsFacade

@@ -111,7 +111,7 @@ async function flushPromises() {
   await new Promise<void>((resolve) => setImmediate(resolve))
 }
 
-void test('mounts the typed ActiveDocument facade and document roots only for documents', async () => {
+void test('mounts the typed ActiveOutline facade and document roots only for documents', async () => {
   const document = buildRootFacadeState(createHost(FileType.Document).host)
   const spreadsheet = buildRootFacadeState(
     createHost(FileType.Spreadsheet).host
@@ -120,13 +120,14 @@ void test('mounts the typed ActiveDocument facade and document roots only for do
     createHost(FileType.Presentation).host
   )
 
-  assert.ok(document.ActiveDocument)
-  assert.ok(document.ActiveDocument?.Reference)
-  assert.ok(document.ActiveDocument?.Service)
-  assert.ok(document.ActiveDocument?.Sub)
-  assert.ok(document.ActiveDocument?.Env)
-  assert.equal(spreadsheet.ActiveDocument, undefined)
-  assert.equal(presentation.ActiveDocument, undefined)
+  assert.ok(document.ActiveOutline)
+  assert.ok(document.ActiveOutline?.Reference)
+  assert.ok(document.ActiveOutline?.Service)
+  assert.ok(document.ActiveOutline?.Sub)
+  assert.ok(document.ActiveOutline?.Env)
+  assert.equal('ActiveDocument' in document, false)
+  assert.equal(spreadsheet.ActiveOutline, undefined)
+  assert.equal(presentation.ActiveOutline, undefined)
 })
 
 void test('routes all typed root methods through productJSAPI paths', async () => {
@@ -168,12 +169,12 @@ void test('routes all typed root methods through productJSAPI paths', async () =
   responses.set(`${prefix}Env.DocsMode.GetDocsMode`, 'normal')
 
   const root = buildRootFacadeState(host)
-  assert.ok(root.ActiveDocument)
-  assert.ok(root.ActiveDocument.Reference)
-  assert.ok(root.ActiveDocument.Service)
-  assert.ok(root.ActiveDocument.Sub)
-  assert.ok(root.ActiveDocument.Env)
-  const editor = root.ActiveDocument.Editor
+  assert.ok(root.ActiveOutline)
+  assert.ok(root.ActiveOutline.Reference)
+  assert.ok(root.ActiveOutline.Service)
+  assert.ok(root.ActiveOutline.Sub)
+  assert.ok(root.ActiveOutline.Env)
+  const editor = root.ActiveOutline.Editor
   const document = editor.Document
   const snapshot = await document.GetContent()
   assert.deepEqual(
@@ -199,16 +200,16 @@ void test('routes all typed root methods through productJSAPI paths', async () =
   assert.equal(await document.Font.SetItalic(false), true)
   assert.equal(await document.Font.SetUnderline(true), true)
   assert.equal(await document.Font.SetStrike(false), true)
-  assert.equal(await root.ActiveDocument.Reference.CanIUse(['a', 'b']), true)
-  assert.deepEqual(await root.ActiveDocument.Service.User.GetUserInfo(), {
+  assert.equal(await root.ActiveOutline.Reference.CanIUse(['a', 'b']), true)
+  assert.deepEqual(await root.ActiveOutline.Service.User.GetUserInfo(), {
     id: 'user-1'
   })
   assert.deepEqual(
-    await root.ActiveDocument.Service.Permission.GetDocumentPermission(),
+    await root.ActiveOutline.Service.Permission.GetDocumentPermission(),
     { read: true, write: true, comment: false }
   )
   assert.equal(
-    await root.ActiveDocument.Service.Collaboration.GetSaveStatus(),
+    await root.ActiveOutline.Service.Collaboration.GetSaveStatus(),
     'saved'
   )
   assert.equal(await document.Markdown.GetMarkdown(), '# Title')
@@ -223,9 +224,9 @@ void test('routes all typed root methods through productJSAPI paths', async () =
   assert.equal(await document.Markdown.ValidateMarkdown('# ok'), true)
   assert.equal(await document.Content.ReplaceSelection('selection'), true)
   assert.equal(await document.Content.ReplaceAllContent('all'), true)
-  assert.equal(await root.ActiveDocument.Env.Language.GetLanguage(), 'zh-CN')
-  assert.equal(await root.ActiveDocument.Env.DocsMode.GetDocsMode(), 'normal')
-  await root.ActiveDocument.Service.Export.DownloadDocument('pdf')
+  assert.equal(await root.ActiveOutline.Env.Language.GetLanguage(), 'zh-CN')
+  assert.equal(await root.ActiveOutline.Env.DocsMode.GetDocsMode(), 'normal')
+  await root.ActiveOutline.Service.Export.DownloadDocument('pdf')
 
   assert.deepEqual(
     calls.map(({ method, args }) => ({ method, args })),
@@ -318,9 +319,9 @@ void test('rebuilds document change snapshots and disposes after async registrat
     stringified: string
   }> = []
   const root = buildRootFacadeState(host)
-  const activeDocument = root.ActiveDocument
-  assert.ok(activeDocument)
-  const dispose = activeDocument.Sub.OnDocumentChange((snapshot) => {
+  const activeOutline = root.ActiveOutline
+  assert.ok(activeOutline)
+  const dispose = activeOutline.Sub.OnDocumentChange((snapshot) => {
     received.push({
       length: snapshot.length,
       serialized: snapshot.serialized,
@@ -358,7 +359,7 @@ void test('reports document change registration and disposal failures', async ()
   })
   const disposeRegistration = buildRootFacadeState(
     registration.host
-  ).ActiveDocument?.Sub.OnDocumentChange(() => undefined)
+  ).ActiveOutline?.Sub.OnDocumentChange(() => undefined)
   await flushPromises()
   assert.equal(registration.callbacks.size, 0)
   assert.deepEqual(registration.errors, [
@@ -377,7 +378,7 @@ void test('reports document change registration and disposal failures', async ()
   })
   const dispose = buildRootFacadeState(
     disposal.host
-  ).ActiveDocument?.Sub.OnDocumentChange(() => undefined)
+  ).ActiveOutline?.Sub.OnDocumentChange(() => undefined)
   dispose?.()
   await flushPromises()
   assert.equal(disposal.callbacks.size, 0)

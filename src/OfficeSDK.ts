@@ -75,7 +75,7 @@ import type {
   CommentsFacade,
   ContentFacade,
   DiscussionFacade,
-  DocsActiveDocumentFacade,
+  DocsActiveOutlineFacade,
   DocsOutlineFacade,
   DocsSearchFacade,
   DocsSelectionFacade,
@@ -233,7 +233,7 @@ export class OfficeSDK extends TinyEmitter {
   spreadsheet?: Spreadsheet.Editor
 
   /** 当前轻文档的标准化、强类型文档入口。 */
-  ActiveDocument?: DocsActiveDocumentFacade
+  ActiveOutline?: DocsActiveOutlineFacade
 
   /**
    * 当前套件支持的标题能力。
@@ -1675,7 +1675,7 @@ export class OfficeSDK extends TinyEmitter {
    * 输出：将所有 facade 字段置空。
    */
   private clearRootFacade() {
-    this.ActiveDocument = undefined
+    this.ActiveOutline = undefined
     this.title = undefined
     this.history = undefined
     this.comments = undefined
