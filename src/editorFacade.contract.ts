@@ -23,6 +23,7 @@ import type {
   SheetRangeFacade,
   SheetSelection
 } from './OfficeSDK'
+import type { OfficeSDKMethodPath } from './OfficeSDK.methods'
 
 type IsAssignable<T, U> = T extends U ? true : false
 type IsEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => V extends U
@@ -49,6 +50,12 @@ type PresentationSelection = Extract<
 type RootPresentation = NonNullable<OfficeSDK['presentation']>
 
 export type EditorFacadeContractAssertions = [
+  Assert<
+    IsEqual<
+      OfficeSDK['canIUse'],
+      (method: OfficeSDKMethodPath) => Promise<boolean>
+    >
+  >,
   Assert<
     IsEqual<NonNullable<OfficeSDK['ActiveOutline']>, DocsActiveOutlineFacade>
   >,

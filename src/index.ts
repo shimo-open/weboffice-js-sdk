@@ -19,6 +19,7 @@ export type {
 } from './jsapi'
 
 export * from './OfficeSDK'
+export * from './OfficeSDK.methods'
 
 export type {
   EmptyPageScene,

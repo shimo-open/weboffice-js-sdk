@@ -62,15 +62,9 @@ export interface DocsProductEditorFacade {
 
 export interface DocsActiveOutlineFacade {
   Editor: DocsProductEditorFacade
-  Reference: DocsProductReferenceFacade
   Service: DocsProductServiceFacade
   Sub: DocsProductSubFacade
   Env: DocsProductEnvFacade
-}
-
-/** 轻文档产品引用能力。 */
-export interface DocsProductReferenceFacade {
-  CanIUse: (scopes: string | string[]) => Promise<boolean>
 }
 
 export interface DocsProductUserFacade {

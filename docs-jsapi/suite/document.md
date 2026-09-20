@@ -7,6 +7,7 @@
 | 方法                                                                | 说明                                       |
 | ------------------------------------------------------------------- | ------------------------------------------ |
 | [sdk.ActiveOutline](#sdkactiveoutline)                              | 标准化强类型文档 API（PC only，`co-1.8+`） |
+| [sdk.canIUse](#sdkcaniusemethod)                                    | 查询当前套件是否支持公开 SDK 方法          |
 | [sdk.title.addChangedListener](#sdktitleaddchangedlistenerlistener) | 监听标题变化（PC only，`co-1.8+`）         |
 | [sdk.title.setTitle](#sdktitlesettitletitle)                        | 设置标题（PC only，`co-1.8+`）             |
 | [sdk.history.show](#sdkhistoryshow)                                 | 显示历史（PC only，`co-1.8+`）             |
@@ -94,9 +95,9 @@ await sdk.ActiveOutline?.Editor.Document.SetTitleContent('Weekly Report')
 
 #### 说明
 
-`ActiveOutline` 是仅文档套件挂载的同步 typed facade 对象；`Reference`、`Service`、`Sub` 和 `Env` 是其下与 `Editor` 同级的产品能力对象。
+`ActiveOutline` 是仅文档套件挂载的同步 typed facade 对象；`Service`、`Sub` 和 `Env` 是其下与 `Editor` 同级的产品能力对象。
 
-本期标准化 API 按 `ActiveOutline.Editor`、`ActiveOutline.Reference`、`ActiveOutline.Service`、`ActiveOutline.Sub` 和 `ActiveOutline.Env` 组织。除事件注册返回同步 disposer 外，所有跨 iframe 方法都返回 `Promise`。
+本期标准化 API 按 `ActiveOutline.Editor`、`ActiveOutline.Service`、`ActiveOutline.Sub` 和 `ActiveOutline.Env` 组织。除事件注册返回同步 disposer 外，所有跨 iframe 方法都返回 `Promise`。
 
 #### 调用方式
 
@@ -131,7 +132,6 @@ await document.Markdown.AppendMarkdown('\n新增内容')
 | `ActiveOutline.Editor.Document.Font.SetItalic(value?)`           | `Promise<boolean>`                 | 设置或切换斜体                           |
 | `ActiveOutline.Editor.Document.Font.SetUnderline(value?)`        | `Promise<boolean>`                 | 设置或切换下划线                         |
 | `ActiveOutline.Editor.Document.Font.SetStrike(value?)`           | `Promise<boolean>`                 | 设置或切换删除线                         |
-| `ActiveOutline.Reference.CanIUse(scopes)`                        | `Promise<boolean>`                 | 查询一个或多个能力是否可用               |
 | `ActiveOutline.Editor.GetEditMode()`                             | `Promise<string>`                  | 获取编辑模式                             |
 | `ActiveOutline.Service.User.GetUserInfo()`                       | `Promise<unknown>`                 | 获取用户信息；返回结构以后续产品契约为准 |
 | `ActiveOutline.Service.Permission.GetDocumentPermission()`       | `Promise<DocsDocumentPermission>`  | 获取文档权限                             |
@@ -166,6 +166,36 @@ dispose?.()
 - [DocsDocumentPermission](#docsdocumentpermission)
 - [DocsDownloadDocumentType](#docsdownloaddocumenttype)
 - [DocsRangeValue](#docsrangevalue)
+
+### sdk.canIUse(method)
+
+#### 说明
+
+判断当前套件、iframe runtime 和宿主 delegation 是否实现指定的公开 SDK 方法。
+方法参数应使用 SDK 导出的 `OfficeSDKMethods` 常量，不应手写产品 scope 字符串。
+
+#### 调用方式
+
+```typescript
+import { OfficeSDKMethods, connect } from 'weboffice-js-sdk'
+
+const sdk = await connect(options)
+const supported = await sdk.canIUse(
+  OfficeSDKMethods.ActiveOutline.Editor.Document.GetContent
+)
+```
+
+#### 类型定义
+
+```typescript
+sdk.canIUse(method: OfficeSDKMethodPath): Promise<boolean>
+```
+
+#### 语义边界
+
+- 未知方法、当前套件不支持或 runtime 未实现时返回 `false`；
+- 不判断文档权限、选区和业务前置条件；
+- SDK 未连接或跨 iframe 通信失败时 Promise reject。
 
 ### 新增 API 方法
 
@@ -1413,7 +1443,7 @@ interface DocsDefaultStyle {
 
 ## 注意事项
 
-- `sdk.ActiveOutline` 只在文档套件挂载；`Reference`、`Service`、`Sub` 和 `Env` 位于 `sdk.ActiveOutline` 下，使用前应处理 `undefined`。
+- `sdk.ActiveOutline` 只在文档套件挂载；`Service`、`Sub` 和 `Env` 位于 `sdk.ActiveOutline` 下，使用前应处理 `undefined`。
 - `DocsEditorDeltaSnapshot` 只保证 `length`、`serialized` 和 `stringify()`，不包含编辑器运行时对象方法。
 - `Sub.OnDocumentChange()` 的取消函数是同步调用；注册和释放过程中的异步错误通过 SDK 的 `error` 事件报告。
 - `sdk.getEditor()` 与既有根级 facade 继续保留，用于历史业务兼容。

@@ -121,19 +121,6 @@
       "verification": ["return-type", "rendered-style"]
     },
     {
-      "id": "can-i-use",
-      "productPath": "Reference.CanIUse",
-      "facadePath": "ActiveOutline.Reference.CanIUse",
-      "transport": "request",
-      "adapter": "none",
-      "input": "string|string[]",
-      "productReturn": "boolean",
-      "facadeReturn": "Promise<boolean>",
-      "prerequisites": ["editor-ready"],
-      "sideEffects": [],
-      "verification": ["return-type", "capability-gate"]
-    },
-    {
       "id": "get-edit-mode",
       "productPath": "Editor.GetEditMode",
       "facadePath": "ActiveOutline.Editor.GetEditMode",

@@ -3,13 +3,20 @@ const path = require('path')
 
 const repoRoot = path.resolve(__dirname, '..')
 const catalogPath = path.join(repoRoot, 'api-contracts', 'light-doc-p0.json')
+const publicMethodsPath = path.join(
+  repoRoot,
+  'api-contracts',
+  'public-methods.json'
+)
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'))
+const publicMethods = JSON.parse(fs.readFileSync(publicMethodsPath, 'utf8'))
 const errors = []
 const requireShowcase = process.argv.includes('--require-showcase')
 
 const ids = new Set()
 const productPaths = new Set()
 const facadePaths = new Set()
+const publicMethodPaths = new Set()
 const allowedTransports = new Set([
   'request',
   'subscription',
@@ -54,6 +61,21 @@ for (const api of catalog.apis) {
   }
 }
 
+for (const method of publicMethods.methods) {
+  if (publicMethodPaths.has(method.publicPath)) {
+    errors.push(`duplicate public method path: ${method.publicPath}`)
+  }
+  publicMethodPaths.add(method.publicPath)
+  if (method.publicPath !== method.facadePath) {
+    errors.push(`public method path must match facade path: ${method.id}`)
+  }
+  if (!method.publicPath.startsWith('ActiveOutline.')) {
+    errors.push(
+      `public method facade path must use ActiveOutline: ${method.id}`
+    )
+  }
+}
+
 const sourceFiles = [
   path.join(repoRoot, 'src', 'OfficeSDK.facade.ts'),
   path.join(repoRoot, 'src', 'OfficeSDK.facade.types.ts'),
@@ -84,6 +106,13 @@ if (iframeRoot) {
     for (const api of catalog.apis) {
       if (!iframeText.includes(`'${api.productPath}'`))
         errors.push(`receiver path is not registered: ${api.id}`)
+    }
+    for (const method of publicMethods.methods) {
+      if (!iframeText.includes(`'${method.productPath}'`)) {
+        errors.push(
+          `public capability product path is not registered: ${method.id}`
+        )
+      }
     }
   } else {
     console.warn(

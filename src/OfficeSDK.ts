@@ -99,6 +99,7 @@ import type {
   TitleFacade,
   VersionFacade
 } from './OfficeSDK.facade.types'
+import type { OfficeSDKMethodPath } from './OfficeSDK.methods'
 import type {
   HeaderBarsChangedPayload,
   HeaderBarsCommandRef,
@@ -234,6 +235,16 @@ export class OfficeSDK extends TinyEmitter {
 
   /** 当前轻文档的标准化、强类型文档入口。 */
   ActiveOutline?: DocsActiveOutlineFacade
+
+  /**
+   * 判断当前套件和 iframe runtime 是否支持指定的公开 SDK 方法。
+   */
+  async canIUse(method: OfficeSDKMethodPath): Promise<boolean> {
+    if (typeof method !== 'string') {
+      throw new TypeError('sdk.canIUse requires a method path string')
+    }
+    return await this.invokeEditorFacade<boolean>('sdk.canIUse', [method])
+  }
 
   /**
    * 当前套件支持的标题能力。

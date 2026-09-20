@@ -200,10 +200,6 @@ function createDocsActiveOutlineRoot(host: FacadeHost): DocsActiveOutlineRoot {
         }
       }
     },
-    Reference: {
-      CanIUse: async (scopes: string | string[]) =>
-        await invokeProductJSAPI<boolean>('Reference.CanIUse', [scopes])
-    },
     Service: {
       User: {
         GetUserInfo: async () =>

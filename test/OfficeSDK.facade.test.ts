@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FileType } from 'weboffice-js-sdk-shared'
 import { buildRootFacadeState } from '../src/OfficeSDK.facade'
+import { OfficeSDKMethods } from '../src/OfficeSDK.methods'
 import {
   HEADER_BARS_METHOD,
   initHeaderBarsFacade,
@@ -111,6 +112,48 @@ async function flushPromises() {
   await new Promise<void>((resolve) => setImmediate(resolve))
 }
 
+void test('routes sdk.canIUse through the SDK-level capability method', async () => {
+  if (!('self' in globalThis)) {
+    Object.assign(globalThis, { self: globalThis })
+  }
+  // OfficeSDK imports a browser-only channel; define self before loading it.
+  const { OfficeSDK } =
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('../src/OfficeSDK') as typeof import('../src/OfficeSDK')
+  const calls: Array<{ method: string; args: unknown[] }> = []
+  const sdk = Object.create(OfficeSDK.prototype) as InstanceType<
+    typeof OfficeSDK
+  >
+  const testSdk = sdk as unknown as {
+    invokeEditorFacade: <T>(method: string, args?: unknown[]) => Promise<T>
+  }
+  testSdk.invokeEditorFacade = async <T>(
+    method: string,
+    args: unknown[] = []
+  ): Promise<T> => {
+    calls.push({ method, args })
+    return true as T
+  }
+
+  assert.equal(
+    await OfficeSDK.prototype.canIUse.call(
+      sdk,
+      OfficeSDKMethods.ActiveOutline.Editor.Document.GetContent
+    ),
+    true
+  )
+  assert.deepEqual(calls, [
+    {
+      method: 'sdk.canIUse',
+      args: ['ActiveOutline.Editor.Document.GetContent']
+    }
+  ])
+  await assert.rejects(
+    () => OfficeSDK.prototype.canIUse.call(sdk, null as never),
+    TypeError
+  )
+})
+
 void test('mounts the typed ActiveOutline facade and document roots only for documents', async () => {
   const document = buildRootFacadeState(createHost(FileType.Document).host)
   const spreadsheet = buildRootFacadeState(
@@ -121,7 +164,6 @@ void test('mounts the typed ActiveOutline facade and document roots only for doc
   )
 
   assert.ok(document.ActiveOutline)
-  assert.ok(document.ActiveOutline?.Reference)
   assert.ok(document.ActiveOutline?.Service)
   assert.ok(document.ActiveOutline?.Sub)
   assert.ok(document.ActiveOutline?.Env)
@@ -145,7 +187,6 @@ void test('routes all typed root methods through productJSAPI paths', async () =
   responses.set(`${prefix}Editor.Document.Font.SetItalic`, true)
   responses.set(`${prefix}Editor.Document.Font.SetUnderline`, true)
   responses.set(`${prefix}Editor.Document.Font.SetStrike`, true)
-  responses.set(`${prefix}Reference.CanIUse`, true)
   responses.set(`${prefix}Service.User.GetUserInfo`, { id: 'user-1' })
   responses.set(`${prefix}Service.Permission.GetDocumentPermission`, {
     read: true,
@@ -170,7 +211,7 @@ void test('routes all typed root methods through productJSAPI paths', async () =
 
   const root = buildRootFacadeState(host)
   assert.ok(root.ActiveOutline)
-  assert.ok(root.ActiveOutline.Reference)
+  assert.equal('Reference' in root.ActiveOutline, false)
   assert.ok(root.ActiveOutline.Service)
   assert.ok(root.ActiveOutline.Sub)
   assert.ok(root.ActiveOutline.Env)
@@ -200,7 +241,6 @@ void test('routes all typed root methods through productJSAPI paths', async () =
   assert.equal(await document.Font.SetItalic(false), true)
   assert.equal(await document.Font.SetUnderline(true), true)
   assert.equal(await document.Font.SetStrike(false), true)
-  assert.equal(await root.ActiveOutline.Reference.CanIUse(['a', 'b']), true)
   assert.deepEqual(await root.ActiveOutline.Service.User.GetUserInfo(), {
     id: 'user-1'
   })
@@ -259,7 +299,6 @@ void test('routes all typed root methods through productJSAPI paths', async () =
         method: `${prefix}Editor.Document.Font.SetStrike`,
         args: [false]
       },
-      { method: `${prefix}Reference.CanIUse`, args: [['a', 'b']] },
       { method: `${prefix}Service.User.GetUserInfo`, args: [] },
       {
         method: `${prefix}Service.Permission.GetDocumentPermission`,
