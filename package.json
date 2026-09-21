@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "preversion": "npm run docs && git add -A docs && git diff-index --quiet HEAD || git commit -m 'docs: update'",
-    "test": "tsc -p tsconfig.test.json && node --test temp/test/test/OfficeSDK.facade.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test temp/test/test/OfficeSDK.facade.test.js temp/test/test/headerBarsAnchor.test.js",
     "build": "webpack",
     "lint": "eslint .",
     "format": "eslint --fix .&& prettier --write .",
