@@ -344,8 +344,9 @@ command.onCommandOpen = (commandId, anchorRect, context) => {
 `{ success, code?, message? }`；当当前 iframe 不支持扩展协议时返回
 `HEADER_BARS_PROTOCOL_UNSUPPORTED`，现有 v1 API 继续按原行为工作。
 
-当前扩展能力仅适用于 PC 端 Document、DocumentPro、Spreadsheet 和 Presentation。
-H5、Table、Form、Board、Mindmap、Flowchart 继续使用 v1 行为。
+当前扩展能力适用于 PC 端所有当前支持的石墨套件：
+Document、DocumentPro、Spreadsheet、Table、Presentation、Form、Board、
+Mindmap 和 Flowchart。H5 仍使用独立的轻量组件和旧 click 兼容链路。
 
 #### `commandRef.visible`
 

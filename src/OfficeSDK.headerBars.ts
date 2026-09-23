@@ -275,10 +275,25 @@ async function registerCommandEventCallbacks(
 ) {
   const tasks: Array<Promise<void>> = []
   callbacks.forEach((callback, key) => {
-    host.getEventOverridesMap().set(key, callback)
     const separatorIndex = key.lastIndexOf(':')
     const id = key.slice(0, separatorIndex)
     const event = key.slice(separatorIndex + 1)
+    if (event === 'click') {
+      host
+        .getOverridesMap()
+        .set(id, callback as (() => void | Promise<void>) | undefined)
+      tasks.push(
+        host.invokeHeaderBars<undefined>(
+          HEADER_BARS_METHOD.setCommandCallbackEnabled,
+          {
+            id,
+            enabled: typeof callback === 'function'
+          }
+        )
+      )
+      return
+    }
+    host.getEventOverridesMap().set(key, callback)
     tasks.push(
       host.invokeHeaderBars<undefined>(
         HEADER_BARS_METHOD.setCommandEventCallbackEnabled,
@@ -291,6 +306,43 @@ async function registerCommandEventCallbacks(
     )
   })
   await Promise.all(tasks)
+}
+
+async function unregisterCommandEventCallbacks(
+  host: HeaderBarsHost,
+  commandIds: string[]
+) {
+  const tasks = commandIds.flatMap((id) =>
+    (['click', 'open', 'close'] as const).map(async (event) => {
+      const key = `${id}:${event}`
+      if (event === 'click') {
+        host.getOverridesMap().delete(id)
+      } else {
+        host.getEventOverridesMap().delete(key)
+      }
+      await host.invokeHeaderBars<undefined>(
+        event === 'click'
+          ? HEADER_BARS_METHOD.setCommandCallbackEnabled
+          : HEADER_BARS_METHOD.setCommandEventCallbackEnabled,
+        event === 'click'
+          ? { id, enabled: false }
+          : { id, event, enabled: false }
+      )
+    })
+  )
+  await Promise.all(tasks)
+}
+
+function flattenCommandIds(
+  commands: HeaderBarsCommandDefinition[] | undefined
+): string[] {
+  if (!commands) {
+    return []
+  }
+  return commands.flatMap((command) => [
+    command.id,
+    ...flattenCommandIds(command.subItems)
+  ])
 }
 
 export function initHeaderBarsFacade(host: HeaderBarsHost): HeaderBarsFacade {
@@ -308,12 +360,28 @@ export function initHeaderBarsFacade(host: HeaderBarsHost): HeaderBarsFacade {
       posCommand: string,
       pos: 'before' | 'after' = 'after'
     ) => {
-      const { onClick, ...commandPayload } = command
+      const capabilities = await resolveHeaderBarsCapabilities(host)
+      const { payload, callbacks } = serializeCommandDefinitions([command])
+      if (
+        capabilities.protocolVersion === 2 &&
+        capabilities.features.treeCommands &&
+        capabilities.features.batchCommands
+      ) {
+        const result = await host.invokeHeaderBars<HeaderBarsMutationResult>(
+          HEADER_BARS_METHOD.addCommands,
+          { commands: payload, posCommand, pos }
+        )
+        if (result.success) {
+          await registerCommandEventCallbacks(host, callbacks)
+        }
+        return result.success
+      }
+
       const added = await host.invokeHeaderBars<boolean>(
         HEADER_BARS_METHOD.addCommand,
-        { command: commandPayload, posCommand, pos }
+        { command: payload[0], posCommand, pos }
       )
-      const clickHandler = onClick
+      const clickHandler = callbacks.get(`${command.id}:click`)
       if (added && typeof clickHandler === 'function') {
         host.getOverridesMap().set(command.id, clickHandler)
         await host.invokeHeaderBars<undefined>(
@@ -516,6 +584,8 @@ export function getHeaderBarsCommandRef(
   }
 
   const commands = host.getCommandsMap()
+  let hasPendingSubItems = false
+  let pendingSubItems: HeaderBarsCommandDefinition[] | undefined
   if (!commands.has(id)) {
     resolveHeaderBarsCapabilities(host)
       .then(async (capabilities) => {
@@ -528,7 +598,12 @@ export function getHeaderBarsCommandRef(
       })
       .then((payload) => {
         if (payload.command) {
-          commands.set(payload.command.id, payload.command)
+          commands.set(
+            payload.command.id,
+            hasPendingSubItems
+              ? { ...payload.command, subItems: pendingSubItems }
+              : payload.command
+          )
         }
       })
       .catch((err: unknown) => {
@@ -750,24 +825,33 @@ export function getHeaderBarsCommandRef(
     subItems: {
       configurable: true,
       enumerable: true,
-      get: () => commands.get(id)?.subItems,
+      get: () =>
+        commands.get(id)?.subItems ??
+        (hasPendingSubItems ? pendingSubItems : undefined),
       set: (next: HeaderBarsCommandDefinition[] | undefined) => {
         const current = commands.get(id)
+        const previousIds = flattenCommandIds(
+          current?.subItems ??
+            (hasPendingSubItems ? pendingSubItems : undefined)
+        )
+        const serialized = serializeCommandDefinitions([{ id, subItems: next }])
+        const serializedSubItems = serialized.payload[0]?.subItems
+        hasPendingSubItems = true
+        pendingSubItems = serializedSubItems
         if (current) {
-          commands.set(id, { ...current, subItems: next })
+          commands.set(id, { ...current, subItems: serializedSubItems })
         }
-        host
-          .invokeHeaderBars<HeaderBarsMutationResult>(
-            HEADER_BARS_METHOD.setCommandOptions,
-            { id, options: { subItems: next } }
-          )
-          .then((result) => {
-            if (!result.success) {
-              host.emitHeaderBarsError(
-                'set headerBars command subItems failed',
-                new Error(result.message ?? result.code ?? 'unknown error')
+        void unregisterCommandEventCallbacks(host, previousIds)
+          .then(async () => {
+            const result =
+              await host.invokeHeaderBars<HeaderBarsMutationResult>(
+                HEADER_BARS_METHOD.setCommandOptions,
+                { id, options: { subItems: serializedSubItems } }
               )
+            if (!result.success) {
+              throw new Error(result.message ?? result.code ?? 'unknown error')
             }
+            await registerCommandEventCallbacks(host, serialized.callbacks)
           })
           .catch((err: unknown) => {
             host.emitHeaderBarsError(

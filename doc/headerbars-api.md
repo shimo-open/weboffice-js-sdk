@@ -23,6 +23,9 @@ sdk.headerBars
 - 标题编辑相关
 - iframe 与宿主之间的点击回调桥接
 
+PC 端当前支持的九类石墨套件统一使用 HeaderBars V2 树形状态和事件协议；
+H5 保留独立组件及旧 click 兼容链路。本 API 文档不包含云文件预览范围。
+
 源码入口：
 
 - facade 定义：`src/OfficeSDK.ts` 中 `HeaderBarsFacade`

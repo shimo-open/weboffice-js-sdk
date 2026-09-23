@@ -7,7 +7,8 @@ import {
   initHeaderBarsFacade,
   type HeaderBarsCapabilities,
   type HeaderBarsCommandRef,
-  type HeaderBarsCommandState
+  type HeaderBarsCommandState,
+  type HeaderBarsMutationResult
 } from '../src/OfficeSDK.headerBars'
 
 type InvokeResponse =
@@ -383,13 +384,18 @@ void test('HeaderBars extension negotiates capabilities and sends atomic batches
   })
 
   const onClick = async () => await Promise.resolve()
+  const onChildClick = async () => await Promise.resolve()
+  const onOpen = async () => await Promise.resolve()
   const result = await facade.addCommands(
     [
       {
         id: 'custom-menu',
         section: 'more',
         onClick,
-        subItems: [{ id: 'custom-child', label: 'Child' }]
+        onOpen,
+        subItems: [
+          { id: 'custom-child', label: 'Child', onClick: onChildClick }
+        ]
       }
     ],
     'download',
@@ -405,7 +411,78 @@ void test('HeaderBars extension negotiates capabilities and sends atomic batches
     ).onClick,
     'undefined'
   )
-  assert.equal(eventCallbacks.get('custom-menu:click'), onClick)
+  const customMenuPayload = ((
+    calls[1]?.payload?.commands as Array<Record<string, unknown>>
+  )?.[0] ?? {}) as {
+    onOpen?: unknown
+    subItems?: Array<Record<string, unknown>>
+  }
+  assert.equal(typeof customMenuPayload.onOpen, 'undefined')
+  assert.equal(typeof customMenuPayload.subItems?.[0]?.onClick, 'undefined')
+  assert.equal(clickCallbacks.get('custom-menu'), onClick)
+  assert.equal(clickCallbacks.get('custom-child'), onChildClick)
+  assert.equal(eventCallbacks.get('custom-menu:open'), onOpen)
+  assert.equal(eventCallbacks.get('custom-menu:click'), undefined)
+  assert.equal(
+    calls.filter(
+      (call) => call.method === HEADER_BARS_METHOD.setCommandCallbackEnabled
+    ).length,
+    2
+  )
+  assert.equal(
+    calls.some(
+      (call) =>
+        call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+        call.payload?.event === 'click'
+    ),
+    false
+  )
+})
+
+void test('HeaderBars V2 refreshes callbacks when subItems are replaced', async () => {
+  const { facade, calls, eventCallbacks, clickCallbacks } =
+    createHeaderBarsEventHost()
+  const oldClick = async () => await Promise.resolve()
+  const nextClick = async () => await Promise.resolve()
+  const nextOpen = async () => await Promise.resolve()
+  const flushAsync = async () =>
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  const ref = facade.getCommand('custom-menu')
+  ref.subItems = [{ id: 'old-child', label: 'Old', onClick: oldClick }]
+  await flushAsync()
+
+  ref.subItems = [
+    {
+      id: 'next-child',
+      label: 'Next',
+      onClick: nextClick,
+      onOpen: nextOpen
+    }
+  ]
+  await flushAsync()
+
+  assert.equal(clickCallbacks.get('old-child'), undefined)
+  assert.equal(clickCallbacks.get('next-child'), nextClick)
+  assert.equal(eventCallbacks.get('next-child:open'), nextOpen)
+  assert.equal(
+    calls.some(
+      (call) =>
+        call.method === HEADER_BARS_METHOD.setCommandCallbackEnabled &&
+        call.payload?.id === 'old-child' &&
+        call.payload?.enabled === false
+    ),
+    true
+  )
+  assert.equal(
+    calls.some(
+      (call) =>
+        call.method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled &&
+        call.payload?.id === 'next-child' &&
+        call.payload?.event === 'open' &&
+        call.payload?.enabled === true
+    ),
+    true
+  )
 })
 
 /** V2 事件回调测试用的宿主桩，记录 invoke 与回调表。 */
@@ -452,6 +529,14 @@ function createHeaderBarsEventHost() {
       payload?: Record<string, unknown>
     ): Promise<T> => {
       calls.push({ method, payload })
+      if (
+        method === HEADER_BARS_METHOD.setCommandOptions ||
+        method === HEADER_BARS_METHOD.setCommandCallbackEnabled ||
+        method === HEADER_BARS_METHOD.setCommandEventCallbackEnabled
+      ) {
+        const result: HeaderBarsMutationResult = { success: true }
+        return result as T
+      }
       return undefined as T
     },
     emitHeaderBarsError: () => undefined,
