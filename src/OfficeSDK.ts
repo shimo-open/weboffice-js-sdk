@@ -44,6 +44,11 @@ import {
 } from '.'
 import { assert } from './assert'
 import {
+  isPointerEventOnIframe,
+  OUTSIDE_POINTER_DOWN_METHOD,
+  resolveOutsidePointerEventName
+} from './outsideIframePointer'
+import {
   EmptyPageOptions,
   NormalizedEmptyPageOptions,
   normalizeEmptyPageOptions
@@ -467,6 +472,8 @@ export class OfficeSDK extends TinyEmitter {
   private headerBarsTitleChangeSubscribed = false
 
   private readonly onViewportResize: () => void
+  private readonly onOutsidePointerDown: EventListener
+  private outsidePointerEventName?: 'pointerdown' | 'mousedown'
 
   /**
    * 归一化后的缺省页配置，构造时一次算完，后续仅读取。
@@ -554,6 +561,9 @@ export class OfficeSDK extends TinyEmitter {
           new Error(`Failed to emit resize event: ${String(err)}`)
         )
       })
+    }
+    this.onOutsidePointerDown = (event) => {
+      this.notifyOutsidePointerDown(event)
     }
 
     this.initChannel()
@@ -773,6 +783,56 @@ export class OfficeSDK extends TinyEmitter {
     )
   }
 
+  /**
+   * 在父文档 capture 阶段监听真实按下，点到本 iframe 之外时通知 iframe 结束编辑。
+   * 输入：无。
+   * 输出：无返回值，重复绑定会被忽略。
+   */
+  private bindOutsideIframePointerListener(): void {
+    if (this.outsidePointerEventName) {
+      return
+    }
+    const eventName = resolveOutsidePointerEventName()
+    this.outsidePointerEventName = eventName
+    document.addEventListener(eventName, this.onOutsidePointerDown, true)
+  }
+
+  /**
+   * 拆除父文档上的 iframe 外按下监听。
+   * 输入：无。
+   * 输出：无返回值；未绑定时直接返回。
+   */
+  private unbindOutsideIframePointerListener(): void {
+    if (!this.outsidePointerEventName) {
+      return
+    }
+    document.removeEventListener(
+      this.outsidePointerEventName,
+      this.onOutsidePointerDown,
+      true
+    )
+    this.outsidePointerEventName = undefined
+  }
+
+  /**
+   * 处理父页按下：目标不是本 iframe 时 fire-and-forget 通知 iframe。
+   * 输入：父文档上的 pointerdown/mousedown 事件。
+   * 输出：无返回值；channel 失败时吞掉，避免打断宿主页面。
+   */
+  private notifyOutsidePointerDown(event: globalThis.Event): void {
+    if (!this.element) {
+      return
+    }
+    if (isPointerEventOnIframe(event, this.element)) {
+      return
+    }
+    void this.channel
+      .invoke(OUTSIDE_POINTER_DOWN_METHOD, [], {
+        audience: AUD
+      })
+      .catch(() => undefined)
+  }
+
   disconnect() {
     this.disconnected = true
     this.pendingInitializationErrorHandler = undefined
@@ -780,6 +840,7 @@ export class OfficeSDK extends TinyEmitter {
     this.preloadCredentialsPromise = undefined
     this.slashMenuCallbacks.clear()
     this.editorFacadeCallbacks.clear()
+    this.unbindOutsideIframePointerListener()
     if (this.element?.parentElement instanceof HTMLElement) {
       this.element.parentElement.removeChild(this.element)
     }
@@ -815,6 +876,7 @@ export class OfficeSDK extends TinyEmitter {
     this.element = await this.initIframe()
 
     this.connectOptions.container.appendChild(this.element)
+    this.bindOutsideIframePointerListener()
     await this.runPreloadHandshake()
 
     this.editor = this.initEditor()
