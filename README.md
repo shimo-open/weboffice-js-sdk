@@ -47,6 +47,27 @@ connect({
 - `disableAiEntry` 为可选布尔值，透传到 iframe 内 `OfficeSDK` 的 AI 入口开关能力。
 - `theme` 为可选主题对象，宿主侧仅负责透传；未传时 iframe 内仍使用默认主题配置。
 
+### V2 统一编辑 / 预览入口
+
+V2 使用独立的 `connectV2()`，旧 `connect()` 保持兼容。V2 要求 `type` 和 `mode` 必填：
+
+```typescript
+import { connectV2 } from 'weboffice-js-sdk'
+
+const sdk = await connectV2({
+  fileId: 'your-file-id',
+  endpoint: 'https://your-shimo-endpoint',
+  signature: 'your-signature',
+  token: 'your-token',
+  container: document.querySelector('#shimo-file'),
+  type: 'writer',
+  mode: 'edit',
+  refreshCredentialsInterval: 600000
+})
+```
+
+支持的 `type` 包括 `file`、`document`、`documentPro`、`writer`、`spreadsheet`、`presentation`、`table` 和 `form`。`writer` 与 `documentPro` 当前共存，`writer` 目前处于内测阶段。当前 `type` 主要作为 iframe 后续基于 `manifest.json` 选择资源的预留字段，不改变后端编辑准备判断。
+
 返回值：
 
 ```

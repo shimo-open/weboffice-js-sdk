@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "suite": "document",
+  "implementation": "newdoc",
+  "methods": [
+    {
+      "id": "get-content",
+      "publicPath": "ActiveOutline.Editor.Document.GetContent",
+      "productPath": "Editor.Document.GetContent",
+      "facadePath": "ActiveOutline.Editor.Document.GetContent",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-title-content",
+      "publicPath": "ActiveOutline.Editor.Document.GetTitleContent",
+      "productPath": "Editor.Document.GetTitleContent",
+      "facadePath": "ActiveOutline.Editor.Document.GetTitleContent",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-title-content",
+      "publicPath": "ActiveOutline.Editor.Document.SetTitleContent",
+      "productPath": "Editor.Document.SetTitleContent",
+      "facadePath": "ActiveOutline.Editor.Document.SetTitleContent",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-text-color",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetTextColor",
+      "productPath": "Editor.Document.Font.SetTextColor",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetTextColor",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-highlight-color",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetHighLightColor",
+      "productPath": "Editor.Document.Font.SetHighLightColor",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetHighLightColor",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-bold",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetBold",
+      "productPath": "Editor.Document.Font.SetBold",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetBold",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-italic",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetItalic",
+      "productPath": "Editor.Document.Font.SetItalic",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetItalic",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-underline",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetUnderline",
+      "productPath": "Editor.Document.Font.SetUnderline",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetUnderline",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "set-strike",
+      "publicPath": "ActiveOutline.Editor.Document.Font.SetStrike",
+      "productPath": "Editor.Document.Font.SetStrike",
+      "facadePath": "ActiveOutline.Editor.Document.Font.SetStrike",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-edit-mode",
+      "publicPath": "ActiveOutline.Editor.GetEditMode",
+      "productPath": "Editor.GetEditMode",
+      "facadePath": "ActiveOutline.Editor.GetEditMode",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-user-info",
+      "publicPath": "ActiveOutline.Service.User.GetUserInfo",
+      "productPath": "Service.User.GetUserInfo",
+      "facadePath": "ActiveOutline.Service.User.GetUserInfo",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-document-permission",
+      "publicPath": "ActiveOutline.Service.Permission.GetDocumentPermission",
+      "productPath": "Service.Permission.GetDocumentPermission",
+      "facadePath": "ActiveOutline.Service.Permission.GetDocumentPermission",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-language",
+      "publicPath": "ActiveOutline.Env.Language.GetLanguage",
+      "productPath": "Env.Language.GetLanguage",
+      "facadePath": "ActiveOutline.Env.Language.GetLanguage",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-docs-mode",
+      "publicPath": "ActiveOutline.Env.DocsMode.GetDocsMode",
+      "productPath": "Env.DocsMode.GetDocsMode",
+      "facadePath": "ActiveOutline.Env.DocsMode.GetDocsMode",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "get-markdown",
+      "publicPath": "ActiveOutline.Editor.Document.Markdown.GetMarkdown",
+      "productPath": "Editor.Document.Markdown.GetMarkdown",
+      "facadePath": "ActiveOutline.Editor.Document.Markdown.GetMarkdown",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "append-markdown",
+      "publicPath": "ActiveOutline.Editor.Document.Markdown.AppendMarkdown",
+      "productPath": "Editor.Document.Markdown.AppendMarkdown",
+      "facadePath": "ActiveOutline.Editor.Document.Markdown.AppendMarkdown",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "insert-markdown",
+      "publicPath": "ActiveOutline.Editor.Document.Markdown.InsertMarkdown",
+      "productPath": "Editor.Document.Markdown.InsertMarkdown",
+      "facadePath": "ActiveOutline.Editor.Document.Markdown.InsertMarkdown",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "validate-markdown",
+      "publicPath": "ActiveOutline.Editor.Document.Markdown.ValidateMarkdown",
+      "productPath": "Editor.Document.Markdown.ValidateMarkdown",
+      "facadePath": "ActiveOutline.Editor.Document.Markdown.ValidateMarkdown",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "replace-selection",
+      "publicPath": "ActiveOutline.Editor.Document.Content.ReplaceSelection",
+      "productPath": "Editor.Document.Content.ReplaceSelection",
+      "facadePath": "ActiveOutline.Editor.Document.Content.ReplaceSelection",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "replace-all-content",
+      "publicPath": "ActiveOutline.Editor.Document.Content.ReplaceAllContent",
+      "productPath": "Editor.Document.Content.ReplaceAllContent",
+      "facadePath": "ActiveOutline.Editor.Document.Content.ReplaceAllContent",
+      "transport": "product-jsapi"
+    },
+    {
+      "id": "on-document-change",
+      "publicPath": "ActiveOutline.Sub.OnDocumentChange",
+      "productPath": "Sub.OnDocumentChange",
+      "facadePath": "ActiveOutline.Sub.OnDocumentChange",
+      "transport": "subscription"
+    },
+    {
+      "id": "get-save-status",
+      "publicPath": "ActiveOutline.Service.Collaboration.GetSaveStatus",
+      "productPath": "Service.Collaboration.GetSaveStatus",
+      "facadePath": "ActiveOutline.Service.Collaboration.GetSaveStatus",
+      "transport": "delegation-or-product-jsapi"
+    },
+    {
+      "id": "download-document",
+      "publicPath": "ActiveOutline.Service.Export.DownloadDocument",
+      "productPath": "Service.Export.DownloadDocument",
+      "facadePath": "ActiveOutline.Service.Export.DownloadDocument",
+      "transport": "delegation-or-product-jsapi"
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 import type {
   AddChartFromSelectionResult,
   BasicPresentationFacade,
+  DocsActiveOutlineFacade,
+  DocsEditorDeltaSnapshot,
   DocsRangeFacade,
   DocsRangeValue,
   DocsTableFacade,
@@ -21,6 +23,7 @@ import type {
   SheetRangeFacade,
   SheetSelection
 } from './OfficeSDK'
+import type { OfficeSDKMethodPath } from './OfficeSDK.methods'
 
 type IsAssignable<T, U> = T extends U ? true : false
 type IsEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => V extends U
@@ -47,6 +50,45 @@ type PresentationSelection = Extract<
 type RootPresentation = NonNullable<OfficeSDK['presentation']>
 
 export type EditorFacadeContractAssertions = [
+  Assert<
+    IsEqual<
+      OfficeSDK['canIUse'],
+      (method: OfficeSDKMethodPath) => Promise<boolean>
+    >
+  >,
+  Assert<
+    IsEqual<NonNullable<OfficeSDK['ActiveOutline']>, DocsActiveOutlineFacade>
+  >,
+  Assert<
+    IsEqual<
+      DocsActiveOutlineFacade['Editor']['Document']['GetContent'],
+      () => Promise<DocsEditorDeltaSnapshot>
+    >
+  >,
+  Assert<
+    IsEqual<
+      DocsActiveOutlineFacade['Editor']['Document']['Markdown']['AppendMarkdown'],
+      (value: string) => Promise<DocsRangeValue>
+    >
+  >,
+  Assert<
+    IsEqual<
+      DocsActiveOutlineFacade['Service']['Permission']['GetDocumentPermission'],
+      () => Promise<import('./OfficeSDK').DocsDocumentPermission>
+    >
+  >,
+  Assert<
+    IsEqual<
+      DocsActiveOutlineFacade['Service']['Export']['DownloadDocument'],
+      (format: import('./OfficeSDK').DocsDownloadDocumentType) => Promise<void>
+    >
+  >,
+  Assert<
+    IsEqual<
+      DocsActiveOutlineFacade['Sub']['OnDocumentChange'],
+      (handler: (delta: DocsEditorDeltaSnapshot) => void) => () => void
+    >
+  >,
   Assert<
     IsAssignable<
       NonNullable<OfficeSDK['title']>['setTitle'],

@@ -32,6 +32,8 @@ const sdk = await connect(options)
 npm install --save weboffice-js-sdk
 ```
 
+访问查看详情：https://www.npmjs.com/package/weboffice-js-sdk
+
 ### npm 包方式
 
 ```typescript
@@ -101,7 +103,7 @@ connect({
 
 这类能力主要用于初始化、等待就绪、读取文件类型、监听通用事件、获取编辑器实例，以及在宿主侧管理连接生命周期。
 
-公共方法的详细说明请查看 [公共处理方法](https://support.shimo.net/apidoc/docs-site/6000010/doc-338258)。
+公共方法的详细说明请查看 [公共处理方法](apifox://link/pages/338258)。
 
 ---
 
@@ -153,7 +155,6 @@ const sdk = await connect(options)
 
 await sdk.history?.show()
 await sdk.version?.createRevision()
-// 文档与表格支持基础 start / quit，幻灯片套件支持完整演示能力
 await sdk.presentation?.start()
 ```
 
@@ -441,28 +442,11 @@ connect({
 
 ## 支持的文档类型
 
-| 类型           | 说明     | 编辑器 API                                                                |
-| -------------- | -------- | ------------------------------------------------------------------------- |
-| `Document`     | 文档     | [文档](https://support.shimo.net/apidoc/docs-site/6000010/doc-338260)     |
-| `DocumentPro`  | 文稿     | [文稿](https://support.shimo.net/apidoc/docs-site/6000010/doc-338261)     |
-| `Spreadsheet`  | 表格     | [表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262)     |
-| `Presentation` | 幻灯片   | [幻灯片](https://support.shimo.net/apidoc/docs-site/6000010/doc-338263)   |
-| `Table`        | 应用表格 | [应用表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338265) |
-| `Form`         | 表单     | [表单](https://support.shimo.net/apidoc/docs-site/6000010/doc-338264)     |
-| `Flowchart`    | 流程图   | 当前站点暂未提供独立 API 页面                                             |
-
----
-
-## 文档入口
-
-如需继续查看不同层级的说明，可结合以下页面：
-
-- [整体概述](https://support.shimo.net/apidoc/docs-site/6000010/doc-338257)
-- [公共处理方法](https://support.shimo.net/apidoc/docs-site/6000010/doc-338258)
-- [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)
-- [文档](https://support.shimo.net/apidoc/docs-site/6000010/doc-338260)
-- [文稿](https://support.shimo.net/apidoc/docs-site/6000010/doc-338261)
-- [表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338262)
-- [幻灯片](https://support.shimo.net/apidoc/docs-site/6000010/doc-338263)
-- [表单](https://support.shimo.net/apidoc/docs-site/6000010/doc-338264)
-- [应用表格](https://support.shimo.net/apidoc/docs-site/6000010/doc-338265)
+| 类型           | 说明     | 编辑器 API                             |
+| -------------- | -------- | -------------------------------------- |
+| `Document`     | 文档     | [文档](apifox://link/pages/338260)     |
+| `DocumentPro`  | 文稿     | [文稿](apifox://link/pages/338261)     |
+| `Spreadsheet`  | 表格     | [表格](apifox://link/pages/338262)     |
+| `Presentation` | 幻灯片   | [幻灯片](apifox://link/pages/338263)   |
+| `Table`        | 应用表格 | [应用表格](apifox://link/pages/338265) |
+| `Form`         | 表单     | [表单](apifox://link/pages/338264)     |

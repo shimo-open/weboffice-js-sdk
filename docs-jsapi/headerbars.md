@@ -15,7 +15,7 @@
 
 ### 界面示意
 
-![image.png](https://api.apifox.com/api/v1/projects/6748269/resources/660638/image-preview)
+![image.png](https://support.shimo.net/api/v1/projects/345089/resources/338798/image-preview)
 
 ### 能力概览
 

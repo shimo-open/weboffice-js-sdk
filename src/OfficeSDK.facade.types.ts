@@ -5,6 +5,110 @@ export interface TitleFacade {
   setTitle: (title: string) => Promise<void>
 }
 
+/**
+ * 可安全跨 iframe 传输的文档 Delta 快照。
+ *
+ * 这里只公开序列化结果和基础元数据，不承诺编辑器运行时对象上的
+ * compose / transform 等方法。
+ */
+export interface DocsEditorDeltaSnapshot {
+  length: number
+  serialized: string
+  stringify: () => string
+}
+
+export interface DocsDocumentPermission {
+  read: boolean
+  write: boolean
+  comment: boolean
+}
+
+export type DocsDownloadDocumentType = 'pdf' | 'word' | 'image' | 'md'
+
+export interface DocsProductFontFacade {
+  SetTextColor: (color: string) => Promise<boolean>
+  SetHighLightColor: (color: string) => Promise<boolean>
+  SetBold: (value?: boolean) => Promise<boolean>
+  SetItalic: (value?: boolean) => Promise<boolean>
+  SetUnderline: (value?: boolean) => Promise<boolean>
+  SetStrike: (value?: boolean) => Promise<boolean>
+}
+
+export interface DocsProductMarkdownFacade {
+  GetMarkdown: () => Promise<string>
+  AppendMarkdown: (value: string) => Promise<DocsRangeValue>
+  InsertMarkdown: (value: string) => Promise<DocsRangeValue>
+  ValidateMarkdown: (value: string) => Promise<boolean>
+}
+
+export interface DocsProductContentFacade {
+  ReplaceSelection: (value: string) => Promise<boolean>
+  ReplaceAllContent: (value: string) => Promise<boolean>
+}
+
+export interface DocsProductDocumentFacade {
+  GetContent: () => Promise<DocsEditorDeltaSnapshot>
+  GetTitleContent: () => Promise<string>
+  SetTitleContent: (title: string) => Promise<void>
+  Font: DocsProductFontFacade
+  Markdown: DocsProductMarkdownFacade
+  Content: DocsProductContentFacade
+}
+
+export interface DocsProductEditorFacade {
+  GetEditMode: () => Promise<string>
+  Document: DocsProductDocumentFacade
+}
+
+export interface DocsActiveOutlineFacade {
+  Editor: DocsProductEditorFacade
+  Service: DocsProductServiceFacade
+  Sub: DocsProductSubFacade
+  Env: DocsProductEnvFacade
+}
+
+export interface DocsProductUserFacade {
+  GetUserInfo: () => Promise<unknown>
+}
+
+export interface DocsProductPermissionFacade {
+  GetDocumentPermission: () => Promise<DocsDocumentPermission>
+}
+
+export interface DocsProductExportFacade {
+  DownloadDocument: (format: DocsDownloadDocumentType) => Promise<void>
+}
+
+export interface DocsProductCollaborationFacade {
+  GetSaveStatus: () => Promise<unknown>
+}
+
+export interface DocsProductServiceFacade {
+  User: DocsProductUserFacade
+  Permission: DocsProductPermissionFacade
+  Export: DocsProductExportFacade
+  Collaboration: DocsProductCollaborationFacade
+}
+
+export interface DocsProductSubFacade {
+  OnDocumentChange: (
+    handler: (delta: DocsEditorDeltaSnapshot) => void
+  ) => () => void
+}
+
+export interface DocsProductLanguageFacade {
+  GetLanguage: () => Promise<string>
+}
+
+export interface DocsProductModeFacade {
+  GetDocsMode: () => Promise<string>
+}
+
+export interface DocsProductEnvFacade {
+  Language: DocsProductLanguageFacade
+  DocsMode: DocsProductModeFacade
+}
+
 export interface CommentsFacade {
   show: (type?: 'list' | 'card') => Promise<void>
   hide: (type?: 'list' | 'card') => Promise<void>
@@ -1188,6 +1292,7 @@ export interface PresentationEventSubscriptionFacade {
 }
 
 export interface OfficeSDKRootFacadeState {
+  ActiveOutline?: DocsActiveOutlineFacade
   title?: TitleFacade
   history?: HistoryFacade
   comments?: CommentsFacade

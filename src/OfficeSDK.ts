@@ -58,6 +58,8 @@ import {
   SlashMenuEntry,
   SlashMenuOptions
 } from './types/SlashMenu'
+import type { ConnectV2FileType, ContentVersion } from './types/ConnectV2'
+import { createPreloadInitPayload, type PreloadInitPayload } from './preload'
 import {
   applyHeaderBarsChanged,
   ensureHeaderBarsTitleChangeSubscription,
@@ -75,6 +77,7 @@ import type {
   CommentsFacade,
   ContentFacade,
   DiscussionFacade,
+  DocsActiveOutlineFacade,
   DocsOutlineFacade,
   DocsSearchFacade,
   DocsSelectionFacade,
@@ -98,6 +101,7 @@ import type {
   TitleFacade,
   VersionFacade
 } from './OfficeSDK.facade.types'
+import type { OfficeSDKMethodPath } from './OfficeSDK.methods'
 import type {
   HeaderBarsChangedPayload,
   HeaderBarsCommandRef,
@@ -146,7 +150,9 @@ const PRELOAD_MESSAGE_TYPE = {
   INIT: 'SDK_PRELOAD_INIT',
   ACK: 'SDK_PRELOAD_ACK',
   DONE: 'SDK_PRELOAD_DONE',
-  ERROR: 'SDK_PRELOAD_ERROR'
+  ERROR: 'SDK_PRELOAD_ERROR',
+  CREDENTIALS_REQUEST: 'SDK_PRELOAD_CREDENTIALS_REQUEST',
+  CREDENTIALS_RESPONSE: 'SDK_PRELOAD_CREDENTIALS_RESPONSE'
 } as const
 const FACADE_PROXY_SKIPPED_PROPS = new Set([
   'then',
@@ -223,6 +229,19 @@ export class OfficeSDK extends TinyEmitter {
    * @deprecated - 用 `sdk.getEditor<T>()` 替代
    */
   spreadsheet?: Spreadsheet.Editor
+
+  /** 当前轻文档的标准化、强类型文档入口。 */
+  ActiveOutline?: DocsActiveOutlineFacade
+
+  /**
+   * 判断当前套件和 iframe runtime 是否支持指定的公开 SDK 方法。
+   */
+  async canIUse(method: OfficeSDKMethodPath): Promise<boolean> {
+    if (typeof method !== 'string') {
+      throw new TypeError('sdk.canIUse requires a method path string')
+    }
+    return await this.invokeEditorFacade<boolean>('sdk.canIUse', [method])
+  }
 
   /**
    * 当前套件支持的标题能力。
@@ -399,7 +418,12 @@ export class OfficeSDK extends TinyEmitter {
   private readonly emitter: TinyEmitter = new TinyEmitter()
 
   private channel: OfficeSDKBroadcastChannel
-  private readonly connectOptions: OfficeSDKOptions
+  private readonly connectOptions: OfficeSDKOptions & {
+    type?: ConnectV2FileType
+  }
+
+  private readonly contentVersion?: ContentVersion
+
   private _readyState: ReadyState = ReadyState.Loading
   private editor: any
   private readonly startParams: StartParams
@@ -448,14 +472,26 @@ export class OfficeSDK extends TinyEmitter {
    * 归一化后的缺省页配置，构造时一次算完，后续仅读取。
    */
   private readonly normalizedEmptyPage: NormalizedEmptyPageOptions
+  private readonly preloadCredentialsMessageHandler: (
+    event: MessageEvent
+  ) => void
+
+  private pendingInitializationErrorHandler?: (error: Error) => void
+  private pendingInitializationError?: Error
+  private preloadCredentialsPromise?: Promise<Credentials>
+  private disconnected = false
+
   private readonly preloadAckTimeoutMs = 2000
   private readonly preloadDoneTimeoutMs = 8000
   private readonly preloadReadyTimeoutMs = 3000
 
-  constructor(options: OfficeSDKOptions) {
+  constructor(options: OfficeSDKOptions, contentVersion?: ContentVersion) {
     super()
 
-    this.connectOptions = options
+    this.connectOptions = options as OfficeSDKOptions & {
+      type?: ConnectV2FileType
+    }
+    this.contentVersion = contentVersion
     this.uuid = uuid()
     this.userUuid = options.userUuid
     this.normalizedEmptyPage = normalizeEmptyPageOptions(options.emptyPage)
@@ -521,6 +557,9 @@ export class OfficeSDK extends TinyEmitter {
     }
 
     this.initChannel()
+    this.preloadCredentialsMessageHandler = (event: MessageEvent) => {
+      void this.handlePreloadMessage(event)
+    }
     this.headerBars = this.initHeaderBarsFacade()
 
     let messageExpires = options.messageExpires
@@ -735,12 +774,17 @@ export class OfficeSDK extends TinyEmitter {
   }
 
   disconnect() {
+    this.disconnected = true
+    this.pendingInitializationErrorHandler = undefined
+    this.pendingInitializationError = undefined
+    this.preloadCredentialsPromise = undefined
     this.slashMenuCallbacks.clear()
     this.editorFacadeCallbacks.clear()
     if (this.element?.parentElement instanceof HTMLElement) {
       this.element.parentElement.removeChild(this.element)
     }
     window.removeEventListener('message', this.messageHandler)
+    window.removeEventListener('message', this.preloadCredentialsMessageHandler)
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', this.onViewportResize)
     } else {
@@ -763,6 +807,9 @@ export class OfficeSDK extends TinyEmitter {
 
     if (!this.sameOrigin) {
       window.addEventListener('message', this.messageHandler)
+    }
+    if (this.connectOptions.type) {
+      window.addEventListener('message', this.preloadCredentialsMessageHandler)
     }
 
     this.element = await this.initIframe()
@@ -796,7 +843,21 @@ export class OfficeSDK extends TinyEmitter {
 
         if (done) {
           this.off(Event.ReadyState, readyStateHandler)
+          this.pendingInitializationErrorHandler = undefined
         }
+      }
+
+      this.pendingInitializationErrorHandler = (error: Error) => {
+        done = true
+        this.off(Event.ReadyState, readyStateHandler)
+        this.pendingInitializationErrorHandler = undefined
+        reject(error)
+      }
+      if (this.pendingInitializationError) {
+        const error = this.pendingInitializationError
+        this.pendingInitializationError = undefined
+        this.pendingInitializationErrorHandler(error)
+        return
       }
 
       this.on(Event.ReadyState, readyStateHandler)
@@ -823,6 +884,7 @@ export class OfficeSDK extends TinyEmitter {
     }
 
     this.installRootFacade()
+    window.removeEventListener('message', this.preloadCredentialsMessageHandler)
   }
 
   /**
@@ -913,6 +975,113 @@ export class OfficeSDK extends TinyEmitter {
     return iframe
   }
 
+  private async handlePreloadMessage(event: MessageEvent) {
+    if (this.disconnected) {
+      return
+    }
+    const source = this.element?.contentWindow
+    if (!source || event.source !== source) {
+      return
+    }
+
+    if (event.origin && event.origin !== this.endpoint.origin) {
+      return
+    }
+
+    const data = event.data as {
+      type?: string
+      requestId?: string
+    }
+
+    if (!data || typeof data.type !== 'string') {
+      return
+    }
+
+    if (data.type === PRELOAD_MESSAGE_TYPE.ERROR) {
+      const message = (event.data as { error?: { message?: string } }).error
+        ?.message
+      const error = new Error(message || 'iframe initialization failed')
+      if (this.pendingInitializationErrorHandler) {
+        this.pendingInitializationErrorHandler(error)
+      } else {
+        this.pendingInitializationError = error
+      }
+      return
+    }
+
+    if (
+      data.type !== PRELOAD_MESSAGE_TYPE.CREDENTIALS_REQUEST ||
+      typeof data.requestId !== 'string' ||
+      data.requestId.length === 0
+    ) {
+      return
+    }
+
+    try {
+      const credentials = await this.getPreloadCredentials()
+      if (this.disconnected) {
+        return
+      }
+
+      source.postMessage(
+        {
+          type: PRELOAD_MESSAGE_TYPE.CREDENTIALS_RESPONSE,
+          requestId: data.requestId,
+          ts: Date.now(),
+          payload: credentials
+        },
+        event.origin || this.endpoint.origin
+      )
+    } catch (error) {
+      source.postMessage(
+        {
+          type: PRELOAD_MESSAGE_TYPE.CREDENTIALS_RESPONSE,
+          requestId: data.requestId,
+          ts: Date.now(),
+          error: {
+            code: 'CREDENTIALS_FAILED',
+            message: error instanceof Error ? error.message : String(error)
+          }
+        },
+        event.origin || this.endpoint.origin
+      )
+    }
+  }
+
+  private async getPreloadCredentials(): Promise<Credentials> {
+    if (this.preloadCredentialsPromise) {
+      return await this.preloadCredentialsPromise
+    }
+
+    const promise = (async () => {
+      const credentials = (await this.connectOptions.getCredentials?.()) ?? {
+        token: this.connectOptions.token,
+        signature: this.connectOptions.signature
+      }
+
+      if (
+        !credentials ||
+        typeof credentials.token !== 'string' ||
+        credentials.token.length === 0 ||
+        typeof credentials.signature !== 'string' ||
+        credentials.signature.length === 0
+      ) {
+        throw new Error('invalid credentials returned by getCredentials')
+      }
+
+      return credentials
+    })()
+    this.preloadCredentialsPromise = promise
+
+    try {
+      return await promise
+    } finally {
+      if (this.preloadCredentialsPromise === promise) {
+        this.preloadCredentialsPromise = undefined
+      }
+    }
+  }
+
   private async runPreloadHandshake() {
     const token = this.connectOptions.token
     const signature = this.connectOptions.signature
@@ -922,12 +1091,7 @@ export class OfficeSDK extends TinyEmitter {
     type PreloadMessage = {
       type?: string
       requestId?: string
-      payload?: {
-        token?: string
-        signature?: string
-        fileGuid?: string
-        mode?: 'edit' | 'preview'
-      }
+      payload?: PreloadInitPayload
       error?: {
         code?: string
         message?: string
@@ -954,17 +1118,21 @@ export class OfficeSDK extends TinyEmitter {
       }
 
       const sendInit = () => {
+        const payload = createPreloadInitPayload({
+          token,
+          signature,
+          fileGuid,
+          mode: this.connectOptions.mode,
+          type: this.connectOptions.type,
+          contentVersion: this.contentVersion
+        })
+
         this.element?.contentWindow?.postMessage(
           {
             type: PRELOAD_MESSAGE_TYPE.INIT,
             requestId,
             ts: Date.now(),
-            payload: {
-              token,
-              signature,
-              fileGuid,
-              mode: this.connectOptions.mode
-            }
+            payload
           },
           '*'
         )
@@ -1469,6 +1637,13 @@ export class OfficeSDK extends TinyEmitter {
     this.editorFacadeCallbacks.delete(callbackId)
   }
 
+  private reportEditorFacadeError(message: string, error: unknown) {
+    this.emit(
+      Event.Error,
+      error instanceof Error ? error : new Error(`${message}: ${String(error)}`)
+    )
+  }
+
   /**
    * 创建基于 method-path 的模块 facade。
    * 输入：模块前缀与少量自定义实现覆盖。
@@ -1562,7 +1737,8 @@ export class OfficeSDK extends TinyEmitter {
         registerEditorFacadeCallback:
           this.registerEditorFacadeCallback.bind(this),
         unregisterEditorFacadeCallback:
-          this.unregisterEditorFacadeCallback.bind(this)
+          this.unregisterEditorFacadeCallback.bind(this),
+        reportEditorFacadeError: this.reportEditorFacadeError.bind(this)
       })
     )
   }
@@ -1573,6 +1749,7 @@ export class OfficeSDK extends TinyEmitter {
    * 输出：将所有 facade 字段置空。
    */
   private clearRootFacade() {
+    this.ActiveOutline = undefined
     this.title = undefined
     this.history = undefined
     this.comments = undefined

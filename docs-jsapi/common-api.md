@@ -13,7 +13,7 @@
 - 断开连接
 - 更新鉴权信息
 
-`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看 [HeaderBars](https://support.shimo.net/apidoc/docs-site/6000010/doc-338259)。
+`HeaderBars` 虽然也挂在 `sdk` 根级实例上，但它属于独立扩展能力，不在本页展开。请查看[顶部栏定制 HeaderBars](apifox://link/pages/338259)。
 
 ---
 
@@ -43,6 +43,7 @@ if (sdk.fileType === FileType.Spreadsheet) {
 | API                           | 说明                                  |
 | ----------------------------- | ------------------------------------- |
 | `connect(options)`            | 创建并连接 SDK，返回 `OfficeSDK` 实例 |
+| `connectV2(options)`          | 创建统一编辑 / 预览连接               |
 | `sdk.ready()`                 | 等待 SDK 进入可交互状态               |
 | `sdk.on(event, listener)`     | 监听事件                              |
 | `sdk.once(event, listener)`   | 监听一次性事件                        |
@@ -174,6 +175,45 @@ const sdk = await connect(options)
 ### 返回值
 
 返回 `Promise<OfficeSDK>`。
+
+## connectV2(options)
+
+### 说明
+
+创建统一的 V2 编辑 / 预览连接。旧 `connect()` 继续保留，V2 不改变旧入口行为。
+
+```typescript
+import { connectV2 } from 'weboffice-js-sdk'
+
+const sdk = await connectV2({
+  fileId: 'your-file-id',
+  endpoint: 'https://your-shimo-endpoint',
+  signature: 'your-signature',
+  token: 'your-token',
+  container: document.querySelector('#shimo-file'),
+  type: 'writer',
+  mode: 'edit',
+  refreshCredentialsInterval: 600000
+})
+```
+
+`ConnectV2Options.type` 和 `ConnectV2Options.mode` 必填。支持的 `type` 为：
+
+```typescript
+type ConnectV2FileType =
+  | 'file'
+  | 'document'
+  | 'documentPro'
+  | 'writer'
+  | 'spreadsheet'
+  | 'presentation'
+  | 'table'
+  | 'form'
+```
+
+`mode: 'preview'` 进入统一预览链路，`mode: 'edit'` 进入统一编辑链路。编辑数据未就绪时，iframe 会展示 loading 并轮询编辑准备状态，直到正式编辑器 Ready 或流程失败。
+
+`writer` 与 `documentPro` 当前共存，`writer` 目前处于内测阶段。当前 `type` 主要作为 iframe 后续基于 `manifest.json` 选择资源的预留字段，不改变后端编辑准备判断。
 
 ### 说明补充
 

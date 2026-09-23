@@ -11,7 +11,15 @@ export * from 'weboffice-js-sdk-shared'
 
 export * from './connect'
 
+export type {
+  JSAPIAdapter,
+  JSAPIContract,
+  JSAPIContractCatalog,
+  JSAPITransport
+} from './jsapi'
+
 export * from './OfficeSDK'
+export * from './OfficeSDK.methods'
 
 export type {
   EmptyPageScene,
